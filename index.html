@@ -3,94 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ШАКАЛИЗАТОР v1.0 // BIOS SETUP</title>
+    <title>SHAKALIZATOR v2.0 // NUCLEAR CORE</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <style>
-        /* --- BIOS / CRT DESIGN --- */
+        /* --- CORE DESIGN --- */
         :root {
-            --crt-color: #4af626; /* Ядовито-зеленый терминал */
-            --bg-color: #111;
-            --crt-flicker: 0.97;
+            --crt-color: #4af626; 
+            --crt-alert: #ff3333;
+            --bg-color: #050505;
         }
 
         body {
             margin: 0;
             padding: 20px;
-            background-color: #000;
+            background-color: var(--bg-color);
             color: var(--crt-color);
             font-family: 'VT323', monospace;
             font-size: 18px;
             text-transform: uppercase;
             overflow-x: hidden;
-            position: relative;
+            user-select: none;
         }
 
-        /* Эффект ЭЛТ монитора (сканлайны и мерцание) */
+        /* --- CRT OVERLAY --- */
         body::before {
             content: " ";
-            display: block;
             position: fixed;
-            top: 0; left: 0; bottom: 0; right: 0;
+            top: 0; left: 0; width: 100vw; height: 100vh;
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            z-index: 2;
+            z-index: 100;
             background-size: 100% 2px, 3px 100%;
             pointer-events: none;
         }
-        body::after {
-            content: " ";
-            display: block;
-            position: fixed;
-            top: 0; left: 0; bottom: 0; right: 0;
-            background: rgba(18, 16, 16, 0.1);
-            opacity: 0;
-            z-index: 2;
-            pointer-events: none;
-            animation: flicker 0.15s infinite;
-        }
-        @keyframes flicker {
-            0% { opacity: 0.27861; }
-            5% { opacity: 0.34769; }
-            10% { opacity: 0.23604; }
-            15% { opacity: 0.90626; }
-            20% { opacity: 0.18128; }
-            25% { opacity: 0.83891; }
-            30% { opacity: 0.65583; }
-            35% { opacity: 0.67807; }
-            40% { opacity: 0.26559; }
-            45% { opacity: 0.84693; }
-            50% { opacity: 0.96019; }
-            55% { opacity: 0.08594; }
-            60% { opacity: 0.20313; }
-            65% { opacity: 0.71988; }
-            70% { opacity: 0.53455; }
-            75% { opacity: 0.37288; }
-            80% { opacity: 0.71428; }
-            85% { opacity: 0.70419; }
-            90% { opacity: 0.7003; }
-            95% { opacity: 0.36108; }
-            100% { opacity: 0.24387; }
-        }
 
-        /* --- LAYOUT --- */
+        /* --- UI ELEMENTS --- */
         .bios-container {
-            max-width: 900px;
-            margin: 0 auto;
+            max-width: 950px;
+            margin: 0 auto 50px auto;
             border: 4px solid var(--crt-color);
             padding: 20px;
-            box-shadow: 0 0 20px var(--crt-color);
+            box-shadow: 0 0 15px var(--crt-color);
+            position: relative;
+            z-index: 10;
         }
 
         h1 {
             text-align: center;
             border-bottom: 2px dashed var(--crt-color);
-            margin-bottom: 20px;
-            letter-spacing: 2px;
+            margin: 0 0 20px 0;
+            font-size: 32px;
+            text-shadow: 2px 2px var(--crt-alert);
         }
 
         .section {
-            margin-bottom: 30px;
-            border: 2px solid var(--crt-color);
+            margin-bottom: 25px;
+            border: 1px solid var(--crt-color);
             padding: 15px;
+            background: rgba(0, 20, 0, 0.3);
         }
         .section-title {
             background: var(--crt-color);
@@ -98,606 +67,628 @@
             display: inline-block;
             padding: 2px 10px;
             margin-top: -25px;
-            margin-left: 10px;
+            margin-left: -5px;
             font-weight: bold;
+            font-size: 20px;
         }
 
         /* --- CONTROLS --- */
         .control-group {
-            margin-bottom: 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
+            margin-bottom: 12px;
         }
-        .control-label {
-            flex: 1;
-            min-width: 200px;
-        }
-        .control-input {
-            flex: 2;
-            display: flex;
-            align-items: center;
-        }
+        .control-label { flex: 1; text-shadow: 0 0 5px var(--crt-color); }
+        .control-input { flex: 2; display: flex; align-items: center; }
         
         input[type="range"] {
             -webkit-appearance: none;
             width: 100%;
-            height: 15px;
+            height: 10px;
             background: #222;
-            border: 2px solid var(--crt-color);
+            border: 1px solid var(--crt-color);
             outline: none;
         }
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            appearance: none;
-            width: 25px;
-            height: 25px;
+            width: 20px;
+            height: 20px;
             background: var(--crt-color);
-            cursor: pointer;
+            cursor: crosshair;
             box-shadow: 0 0 10px var(--crt-color);
         }
         input[type="range"]::-moz-range-thumb {
-            width: 25px;
-            height: 25px;
+            width: 20px;
+            height: 20px;
             background: var(--crt-color);
-            cursor: pointer;
+            cursor: crosshair;
             border: none;
-            box-shadow: 0 0 10px var(--crt-color);
         }
 
-        .value-display {
-            min-width: 60px;
-            text-align: right;
-            margin-left: 10px;
-            color: var(--crt-color);
-        }
+        /* Красные слайдеры для опасных зон */
+        .danger-slider input[type="range"]::-webkit-slider-thumb { background: var(--crt-alert); box-shadow: 0 0 10px var(--crt-alert); }
+        .danger-slider input[type="range"] { border-color: var(--crt-alert); }
 
-        /* --- EQ SECTION --- */
-        .eq-container {
-            display: flex;
-            justify-content: space-around;
-            gap: 10px;
-        }
-        .eq-band {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            flex: 1;
-        }
+        .value-display { min-width: 70px; text-align: right; margin-left: 10px; font-weight: bold; }
+
+        /* --- EQ --- */
+        .eq-container { display: flex; justify-content: space-around; height: 160px; align-items: flex-end; }
+        .eq-band { display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: space-between; }
         .eq-band input[type="range"] {
-            /* Поворачиваем слайдеры вертикально для EQ */
-            writing-mode: bt-lr; /* IE */
-            -webkit-appearance: slider-vertical; /* WebKit */
-            width: 30px;
-            height: 150px;
-            margin: 10px 0;
+            writing-mode: bt-lr; 
+            -webkit-appearance: slider-vertical;
+            width: 20px; height: 120px;
         }
 
-        /* --- MEDIA & BUTTONS --- */
-        #fileInput {
-            display: none;
-        }
-        .file-upload-btn, .action-btn {
-            background: transparent;
+        /* --- BUTTONS --- */
+        .btn {
+            background: #000;
             color: var(--crt-color);
             border: 2px solid var(--crt-color);
-            padding: 10px 20px;
-            cursor: pointer;
-            font-family: 'VT323', monospace;
+            padding: 10px 25px;
+            font-family: inherit;
             font-size: 20px;
-            text-transform: uppercase;
+            cursor: pointer;
             margin-right: 10px;
             margin-bottom: 10px;
-            transition: all 0.1s;
+            transition: 0.1s;
         }
-        .file-upload-btn:hover, .action-btn:hover {
+        .btn:hover:not(:disabled) {
             background: var(--crt-color);
             color: #000;
-            box-shadow: 0 0 15px var(--crt-color);
+            box-shadow: 0 0 20px var(--crt-color);
         }
-        .file-upload-btn:active, .action-btn:active {
-             transform: scale(0.98);
-        }
+        .btn:disabled { border-color: #333; color: #333; cursor: not-allowed; }
+        
+        .btn-danger { color: var(--crt-alert); border-color: var(--crt-alert); }
+        .btn-danger:hover { background: var(--crt-alert); color: #000; box-shadow: 0 0 20px var(--crt-alert); }
 
+        .file-input-wrapper { position: relative; overflow: hidden; display: inline-block; }
+        .file-input-wrapper input[type=file] { position: absolute; left: 0; top: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+
+        /* --- VIDEO AREA --- */
         #videoContainer {
-            display: none; /* Скрыт по умолчанию */
             margin-top: 20px;
-            text-align: center;
-            border: 2px dashed var(--crt-color);
-            padding: 5px;
+            border: 2px dashed #333;
+            min-height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #000;
         }
-        canvas {
-            max-width: 100%;
-            height: auto;
-            /* Базовый фильтр для монитора */
-            filter: sepia(100%) hue-rotate(50deg) saturate(300%) contrast(120%);
-        }
+        canvas { max-width: 100%; height: auto; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
 
-        .status-bar {
-            margin-top: 20px;
-            border-top: 2px dashed var(--crt-color);
+        /* --- FOOTER --- */
+        .footer {
+            margin-top: 30px;
+            border-top: 1px dashed var(--crt-color);
             padding-top: 10px;
             display: flex;
             justify-content: space-between;
+            font-size: 14px;
+            opacity: 0.8;
         }
-
-        #recordingIndicator {
-            color: red;
-            display: none;
-            animation: blink 1s infinite;
-        }
-        @keyframes blink { 50% { opacity: 0; } }
+        .blink { animation: blinker 1s linear infinite; }
+        @keyframes blinker { 50% { opacity: 0; } }
 
     </style>
 </head>
 <body>
 
 <div class="bios-container">
-    <h1>/// ШАКАЛИЗАТОР СИСТЕМ v2.6.6 ///</h1>
-    <div style="text-align: center; margin-bottom: 20px;">
-        <span style="border: 1px solid var(--crt-color); padding: 5px;">BIOS DATE: 26/01/2026</span>
-        <span style="border: 1px solid var(--crt-color); padding: 5px; margin-left: 10px;">STATUS: SYSTEM CORRUPTION READY</span>
+    <h1>/// SHAKALIZATOR v2.0 NUCLEAR ///</h1>
+    
+    <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 16px;">
+        <span>SYSTEM: ONLINE</span>
+        <span>MEM: 666KB OK</span>
+        <span id="sysStatus">WAITING FOR INPUT...</span>
     </div>
 
     <div class="section">
-        <div class="section-title">[ INPUT SOURCE ]</div>
-        <label for="fileInput" class="file-upload-btn">
-            [ LOAD FILE (AUDIO/VIDEO) ]
-        </label>
-        <input type="file" id="fileInput" accept="audio/*,video/*">
-        <span id="fileNameDisplay">NO FILE LOADED</span>
-
-        <div id="mediaControls" style="margin-top: 20px; display: none;">
-            <button id="playBtn" class="action-btn">► PLAY</button>
-            <button id="stopBtn" class="action-btn">■ STOP</button>
-            <button id="startRecBtn" class="action-btn">● REC OUTPUT</button>
-            <button id="stopRecBtn" class="action-btn" style="display:none; color:red; border-color:red;">■ STOP REC</button>
-            <span id="recordingIndicator">RECORDING...</span>
+        <div class="section-title">[ 1. LOAD DATA ]</div>
+        <div class="file-input-wrapper">
+            <button class="btn">[ UPLOAD FILE ]</button>
+            <input type="file" id="fileInput" accept="audio/*,video/*">
+        </div>
+        <span id="fileName" style="margin-left: 10px; color: #888;">NO FILE</span>
+        
+        <div id="transport" style="margin-top: 15px; display: none;">
+            <button id="playBtn" class="btn">► RUN</button>
+            <button id="stopBtn" class="btn">■ HALT</button>
+            <button id="randomBtn" class="btn btn-danger">[ RAND0MIZE ]</button>
         </div>
     </div>
 
     <div id="videoContainer">
-        <canvas id="videoCanvas"></canvas>
-        <video id="sourceVideo" style="display: none;" playsinline webkit-playsinline crossOrigin="anonymous"></video>
+        <div id="placeholderText" style="color: #333;">[ VISUAL OUTPUT ]</div>
+        <canvas id="mainCanvas"></canvas>
+        <video id="sourceVideo" style="display: none;" playsinline webkit-playsinline crossorigin="anonymous"></video>
     </div>
 
+    <div style="height: 20px;"></div>
+
     <div class="section">
-        <div class="section-title">[ AUDIO DESTRUCTION CORE ]</div>
+        <div class="section-title">[ 2. AUDIO DESTRUCTION ]</div>
         
         <div class="control-group">
-            <label class="control-label">MASTER GAIN (PRE-LIMITER)</label>
+            <label class="control-label">INPUT GAIN (VOLUME)</label>
             <div class="control-input">
-                <input type="range" id="preGain" min="1" max="20" step="0.1" value="1">
-                <span class="value-display" id="preGainVal">1.0</span>
+                <input type="range" id="param-gain" min="0.5" max="5" step="0.1" value="1">
+                <span class="value-display" id="val-gain">1.0</span>
+            </div>
+        </div>
+
+        <div class="control-group danger-slider">
+            <label class="control-label">BITCRUSHER (JPEG AUDIO)</label>
+            <div class="control-input">
+                <input type="range" id="param-crush" min="0" max="1" step="0.01" value="0">
+                <span class="value-display" id="val-crush">0%</span>
             </div>
         </div>
 
         <div class="control-group">
-            <label class="control-label">DISTORTION (BITCRUSH/CLIP)</label>
+            <label class="control-label">HARD CLIP DISTORTION</label>
             <div class="control-input">
-                <input type="range" id="distortion" min="0" max="1000" step="1" value="0">
-                <span class="value-display" id="distortionVal">0</span>
+                <input type="range" id="param-dist" min="0" max="2000" step="10" value="0">
+                <span class="value-display" id="val-dist">0</span>
             </div>
         </div>
 
          <div class="control-group">
-            <label class="control-label">BRICKWALL LIMITER (THRESHOLD)</label>
+            <label class="control-label">DIGITAL DELAY (ECHO)</label>
             <div class="control-input">
-                <input type="range" id="limiterThresh" min="-60" max="0" step="1" value="-10">
-                <span class="value-display" id="limiterThreshVal">-10dB</span>
+                <input type="range" id="param-delay" min="0" max="1" step="0.05" value="0">
+                <span class="value-display" id="val-delay">OFF</span>
             </div>
         </div>
-
+        
         <div class="control-group">
-            <label class="control-label">PLAYBACK RATE (PITCH/SPEED)</label>
+            <label class="control-label">PLAYBACK RATE (SPEED)</label>
             <div class="control-input">
-                <input type="range" id="playbackRate" min="0.1" max="3" step="0.1" value="1">
-                <span class="value-display" id="playbackRateVal">1.0x</span>
+                <input type="range" id="param-rate" min="0.1" max="3" step="0.1" value="1">
+                <span class="value-display" id="val-rate">1.0x</span>
             </div>
         </div>
     </div>
 
     <div class="section">
-        <div class="section-title">[ 5-BAND GRAPHIC EQ (165Hz - 16kHz+) ]</div>
+        <div class="section-title">[ 3. FREQUENCY MAP ]</div>
         <div class="eq-container">
-            <div class="eq-band">
-                <label>165Hz</label>
-                <input type="range" class="eq-slider" data-freq="165" min="-40" max="40" value="0" orient="vertical">
-                <span class="eq-val">0dB</span>
+            <div class="eq-band"><input type="range" class="eq-sl" data-f="0" min="-20" max="20" value="0"><label>LOW</label></div>
+            <div class="eq-band"><input type="range" class="eq-sl" data-f="1" min="-20" max="20" value="0"><label>MID</label></div>
+            <div class="eq-band"><input type="range" class="eq-sl" data-f="2" min="-20" max="20" value="0"><label>HIGH</label></div>
+            <div class="eq-band"><input type="range" class="eq-sl" data-f="3" min="-20" max="20" value="0"><label>ULTRA</label></div>
+            <div class="eq-band"><input type="range" class="eq-sl" data-f="4" min="-20" max="20" value="0"><label>AIR</label></div>
+        </div>
+    </div>
+
+    <div class="section" id="vidControls" style="display:none;">
+        <div class="section-title">[ 4. VISUAL CORRUPTION ]</div>
+        <div class="control-group danger-slider">
+            <label class="control-label">RGB SPLIT LEVEL</label>
+            <div class="control-input">
+                <input type="range" id="v-rgb" min="0" max="50" value="0">
+                <span class="value-display" id="val-v-rgb">0</span>
             </div>
-            <div class="eq-band">
-                <label>500Hz</label>
-                <input type="range" class="eq-slider" data-freq="500" min="-40" max="40" value="0" orient="vertical">
-                <span class="eq-val">0dB</span>
-            </div>
-            <div class="eq-band">
-                <label>2kHz</label>
-                <input type="range" class="eq-slider" data-freq="2000" min="-40" max="40" value="0" orient="vertical">
-                <span class="eq-val">0dB</span>
-            </div>
-            <div class="eq-band">
-                <label>6kHz</label>
-                <input type="range" class="eq-slider" data-freq="6000" min="-40" max="40" value="0" orient="vertical">
-                <span class="eq-val">0dB</span>
-            </div>
-            <div class="eq-band">
-                <label>16kHz+</label>
-                <input type="range" class="eq-slider" data-freq="16000" min="-40" max="40" value="0" orient="vertical">
-                <span class="eq-val">0dB</span>
+        </div>
+        <div class="control-group">
+            <label class="control-label">CONTRAST FRYING</label>
+            <div class="control-input">
+                <input type="range" id="v-contrast" min="100" max="500" value="100">
+                <span class="value-display" id="val-v-contrast">100%</span>
             </div>
         </div>
     </div>
 
-     <div class="section" id="videoControlsSection" style="display:none;">
-        <div class="section-title">[ VIDEO SIGNAL CORRUPTION ]</div>
-        <div class="control-group">
-             <label class="control-label" style="color: red;">⚠ SHAKAL LEVEL (1-10) ⚠</label>
-             <div class="control-input">
-                 <input type="range" id="videoShakal" min="0" max="10" step="1" value="0">
-                 <span class="value-display" id="videoShakalVal">0</span>
-             </div>
-         </div>
-         <div style="font-size: 14px; color: #888;">*Warning: High levels may cause visual seizures and browser lag.*</div>
+    <div class="section" style="border-color: #fff;">
+        <div class="section-title" style="background: #fff;">[ 5. EXPORT ]</div>
+        <button id="recBtn" class="btn btn-danger">● START RECORDING</button>
+        <span id="recStatus" class="blink" style="display:none; color: red;">[ REC IN PROGRESS ]</span>
+        <div style="font-size: 12px; margin-top: 5px; color: #666;">*Note: Recording relies on browser capabilities. May lag on heavy settings.*</div>
     </div>
 
-    <div class="status-bar">
-        <div>F1: HELP | F10: SAVE & EXIT | ESC: DISCARD</div>
+    <div class="footer">
         <div>@Dicko1Prim | 2026.</div>
+        <div>NO WARRANTY. USE AT OWN RISK.</div>
     </div>
+
 </div>
 
-
 <script>
-    // === ИНИЦИАЛИЗАЦИЯ СИСТЕМЫ ===
-    console.log("BIOS SYSTEM BOOT...");
-    console.log("LOADING SHAKALIZATOR KERNEL...");
+/* =========================================
+   CORE SYSTEM LOGIC
+   ========================================= */
 
-    const fileInput = document.getElementById('fileInput');
-    const fileNameDisplay = document.getElementById('fileNameDisplay');
-    const mediaControls = document.getElementById('mediaControls');
-    const playBtn = document.getElementById('playBtn');
-    const stopBtn = document.getElementById('stopBtn');
-    const startRecBtn = document.getElementById('startRecBtn');
-    const stopRecBtn = document.getElementById('stopRecBtn');
-    const recordingIndicator = document.getElementById('recordingIndicator');
+const sysStatus = document.getElementById('sysStatus');
+const fileInput = document.getElementById('fileInput');
+const videoElement = document.getElementById('sourceVideo');
+const canvas = document.getElementById('mainCanvas');
+const ctx = canvas.getContext('2d', { willReadFrequently: true }); // Opt for speed
+const transport = document.getElementById('transport');
+const playBtn = document.getElementById('playBtn');
+const stopBtn = document.getElementById('stopBtn');
 
-    const videoContainer = document.getElementById('videoContainer');
-    const sourceVideo = document.getElementById('sourceVideo');
-    const videoCanvas = document.getElementById('videoCanvas');
-    const canvasCtx = videoCanvas.getContext('2d');
-    const videoControlsSection = document.getElementById('videoControlsSection');
-    const videoShakalSlider = document.getElementById('videoShakal');
+// --- AUDIO CONTEXT VARS ---
+let actx;
+let sourceNode;
+let gainNode, distortionNode, delayNode, feedbackNode, limiterNode;
+let bitcrusherNode; // ScriptProcessor
+let eqNodes = [];
+let destStream;
+let isPlaying = false;
+let isVideo = false;
 
-    // --- WEB AUDIO CONTEXT ---
-    let audioCtx;
-    let sourceNode;
-    let preGainNode;
-    let distortionNode;
-    let eqBands = [];
-    let limiterNode;
-    let masterAnalyser;
-    let destinationStreamNode; // Для записи
+// --- RECORDER VARS ---
+let mediaRecorder;
+let chunks = [];
+let animationId;
 
-    let isVideo = false;
-    let isPlaying = false;
-    let animationId;
-    let mediaRecorder;
-    let recordedChunks = [];
+// --- INITIALIZE UI EVENTS ---
+fileInput.addEventListener('change', handleFileSelect);
+playBtn.addEventListener('click', startSystem);
+stopBtn.addEventListener('click', stopSystem);
+document.getElementById('recBtn').addEventListener('click', toggleRecording);
+document.getElementById('randomBtn').addEventListener('click', randomizeSettings);
 
-    // --- НАСТРОЙКА ЗВУКОВОГО ТРАКТА ---
-    function initAudioContext() {
-        if (!audioCtx) {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
+// Sliders listeners
+const bindSlider = (id, displayId, unit = '', cb) => {
+    const el = document.getElementById(id);
+    el.addEventListener('input', (e) => {
+        document.getElementById(displayId).innerText = e.target.value + unit;
+        if(cb) cb(parseFloat(e.target.value));
+    });
+};
 
-        // 1. Pre-Gain (для перегруза)
-        preGainNode = audioCtx.createGain();
-        preGainNode.gain.value = parseFloat(document.getElementById('preGain').value);
+bindSlider('param-gain', 'val-gain', '', v => { if(gainNode) gainNode.gain.value = v; });
+bindSlider('param-dist', 'val-dist', '', v => updateDistortion(v));
+bindSlider('param-rate', 'val-rate', 'x', v => { videoElement.playbackRate = v; });
+bindSlider('param-delay', 'val-delay', '', v => updateDelay(v));
+bindSlider('param-crush', 'val-crush', '%', v => {}); // Handled in processor
+bindSlider('v-rgb', 'val-v-rgb');
+bindSlider('v-contrast', 'val-v-contrast', '%');
 
-        // 2. Distortion (WaveShaper для жесткого клиппинга)
-        distortionNode = audioCtx.createWaveShaper();
-        updateDistortionCurve(0);
+// EQ Listeners
+const freqs = [60, 250, 1000, 4000, 12000];
+document.querySelectorAll('.eq-sl').forEach((el, idx) => {
+    el.addEventListener('input', (e) => {
+        if(eqNodes[idx]) eqNodes[idx].gain.value = e.target.value;
+    });
+});
 
-        // 3. EQ (5 полос)
-        const frequencies = [165, 500, 2000, 6000, 16000];
-        eqBands = frequencies.map(freq => {
-            const filter = audioCtx.createBiquadFilter();
-            filter.type = (freq === 165) ? 'lowshelf' : (freq === 16000) ? 'highshelf' : 'peaking';
-            filter.frequency.value = freq;
-            filter.Q.value = 1.0; // Ширина полосы
-            filter.gain.value = 0;
-            return filter;
-        });
+/* =========================================
+   FILE LOADING
+   ========================================= */
+function handleFileSelect(e) {
+    const file = e.target.files[0];
+    if(!file) return;
 
-        // 4. Limiter (DynamicsCompressor с экстремальными настройками)
-        limiterNode = audioCtx.createDynamicsCompressor();
-        limiterNode.threshold.value = parseFloat(document.getElementById('limiterThresh').value);
-        limiterNode.knee.value = 0; // Жесткое колено
-        limiterNode.ratio.value = 20; // Почти кирпичная стена
-        limiterNode.attack.value = 0.001; // Мгновенная атака
-        limiterNode.release.value = 0.1;
+    // Reset
+    stopSystem();
+    
+    document.getElementById('fileName').innerText = file.name;
+    sysStatus.innerText = "LOADING DATA...";
+    sysStatus.style.color = "yellow";
 
-        // 5. Analyser (для визуализации, если понадобится, и для записи)
-        masterAnalyser = audioCtx.createAnalyser();
+    const url = URL.createObjectURL(file);
+    videoElement.src = url;
+    
+    isVideo = file.type.startsWith('video');
+    
+    videoElement.onloadeddata = () => {
+        sysStatus.innerText = "READY TO RUN";
+        sysStatus.style.color = "var(--crt-color)";
+        transport.style.display = "block";
         
-        // 6. Узел для записи потока
-        destinationStreamNode = audioCtx.createMediaStreamDestination();
-    }
-
-    // --- ФУНКЦИЯ СОЗДАНИЯ КРИВОЙ ДИСТОРШНА ---
-    // Чем выше 'amount', тем жестче квадратная волна
-    function makeDistortionCurve(amount) {
-        const k = typeof amount === 'number' ? amount : 50;
-        const n_samples = 44100;
-        const curve = new Float32Array(n_samples);
-        const deg = Math.PI / 180;
-        for (let i = 0; i < n_samples; ++i) {
-            const x = i * 2 / n_samples - 1;
-            // Классическая формула для жесткого клиппинга
-            curve[i] = (3 + k) * x * 20 * deg / (Math.PI + k * Math.abs(x));
-        }
-        return curve;
-    }
-
-    function updateDistortionCurve(val) {
-        if (!distortionNode) return;
-        if (val === 0) {
-            distortionNode.curve = null;
+        if(isVideo) {
+            document.getElementById('vidControls').style.display = "block";
+            canvas.width = videoElement.videoWidth;
+            canvas.height = videoElement.videoHeight;
+            // Draw first frame
+            ctx.drawImage(videoElement, 0, 0);
+            document.getElementById('placeholderText').style.display = 'none';
         } else {
-            // Увеличиваем множитель для "супер шакала"
-            distortionNode.curve = makeDistortionCurve(val * 2);
+            document.getElementById('vidControls').style.display = "none";
+            canvas.width = 320;
+            canvas.height = 100;
+            ctx.fillStyle = "#000";
+            ctx.fillRect(0,0,320,100);
+            ctx.fillStyle = "#4af626";
+            ctx.font = "20px monospace";
+            ctx.fillText("AUDIO ONLY MODE", 80, 55);
+            document.getElementById('placeholderText').style.display = 'none';
         }
+    };
+}
+
+/* =========================================
+   AUDIO ENGINE
+   ========================================= */
+function initAudio() {
+    if(!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+    actx.resume();
+
+    // 1. Create Nodes
+    // Fix: createMediaElementSource can only be created once per element
+    if(!sourceNode) {
+        sourceNode = actx.createMediaElementSource(videoElement);
     }
 
-    // --- ЗАГРУЗКА ФАЙЛА ---
-    fileInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
+    gainNode = actx.createGain();
+    
+    // Distortion
+    distortionNode = actx.createWaveShaper();
+    updateDistortion(document.getElementById('param-dist').value);
 
-        stopPlayback(); // Остановить предыдущее
-        fileNameDisplay.textContent = "LOADED: " + file.name.toUpperCase();
-        mediaControls.style.display = "block";
+    // Bitcrusher (ScriptProcessor - old but effective for glitching)
+    // Buffer size 4096 gives a nice laggy feel if we mess with it
+    bitcrusherNode = actx.createScriptProcessor(4096, 2, 2);
+    bitcrusherNode.onaudioprocess = processBitcrush;
 
-        isVideo = file.type.startsWith('video');
-
-        if (isVideo) {
-            videoContainer.style.display = "block";
-            videoControlsSection.style.display = "block";
-            sourceVideo.src = URL.createObjectURL(file);
-            sourceVideo.load();
-        } else {
-            videoContainer.style.display = "none";
-            videoControlsSection.style.display = "none";
-            // Для аудио можно было бы использовать FileReader и decodeAudioData,
-            // но использование video элемента для аудио тоже работает и унифицирует код.
-            sourceVideo.src = URL.createObjectURL(file);
-            sourceVideo.load();
-        }
+    // EQ
+    eqNodes = freqs.map(f => {
+        const n = actx.createBiquadFilter();
+        n.type = "peaking";
+        n.frequency.value = f;
+        n.Q.value = 1;
+        return n;
     });
 
-    // --- PLAYBACK CONTROL ---
-    playBtn.addEventListener('click', startPlayback);
-    stopBtn.addEventListener('click', stopPlayback);
+    // Delay
+    delayNode = actx.createDelay(5.0);
+    feedbackNode = actx.createGain();
+    delayNode.delayTime.value = 0; 
+    feedbackNode.gain.value = 0;
 
-    function startPlayback() {
-        if (isPlaying) return;
-        initAudioContext();
-        audioCtx.resume();
+    // Limiter (Protects ears slightly)
+    limiterNode = actx.createDynamicsCompressor();
+    limiterNode.threshold.value = -5;
+    limiterNode.ratio.value = 20;
 
-        // Создаем источник из элемента <video> (он играет и аудио файлы)
-        sourceNode = audioCtx.createMediaElementSource(sourceVideo);
+    destStream = actx.createMediaStreamDestination();
 
-        // --- СОЕДИНЯЕМ ЦЕПЬ ЭФФЕКТОВ ---
-        // Source -> PreGain -> Distortion -> EQ[0]->EQ[1]... -> Limiter -> Destination
-        let currentNode = sourceNode;
-        currentNode.connect(preGainNode);
-        currentNode = preGainNode;
-        
-        currentNode.connect(distortionNode);
-        currentNode = distortionNode;
+    // 2. Connect Graph
+    // Source -> Gain -> Bitcrusher -> Distortion -> EQ -> Delay -> Limiter -> Out
+    
+    let c = sourceNode;
+    c.connect(gainNode); c = gainNode;
+    
+    c.connect(bitcrusherNode); c = bitcrusherNode;
+    
+    c.connect(distortionNode); c = distortionNode;
+    
+    eqNodes.forEach(n => { c.connect(n); c = n; });
 
-        eqBands.forEach(band => {
-            currentNode.connect(band);
-            currentNode = band;
-        });
+    // Delay path
+    c.connect(delayNode);
+    delayNode.connect(feedbackNode);
+    feedbackNode.connect(delayNode); // loop
+    delayNode.connect(limiterNode); // wet signal
+    c.connect(limiterNode); // dry signal
 
-        currentNode.connect(limiterNode);
-        currentNode = limiterNode;
+    limiterNode.connect(actx.destination);
+    limiterNode.connect(destStream);
+}
 
-        currentNode.connect(masterAnalyser);
-        masterAnalyser.connect(audioCtx.destination); // Выход на колонки
-        masterAnalyser.connect(destinationStreamNode); // Выход на запись
+// Custom Bitcrusher Logic
+function processBitcrush(e) {
+    const crushAmount = parseFloat(document.getElementById('param-crush').value);
+    const input = e.inputBuffer;
+    const output = e.outputBuffer;
 
-        // Применяем скорость воспроизведения
-        sourceVideo.playbackRate = parseFloat(document.getElementById('playbackRate').value);
-
-        if (isVideo) {
-            videoCanvas.width = sourceVideo.videoWidth || 640;
-            videoCanvas.height = sourceVideo.videoHeight || 480;
-            drawVideoFrame();
+    // If crush is 0, pass through roughly
+    if(crushAmount <= 0.01) {
+        for (let ch = 0; ch < input.numberOfChannels; ch++) {
+            output.getChannelData(ch).set(input.getChannelData(ch));
         }
-        
-        sourceVideo.play();
+        return;
+    }
+
+    const step = Math.pow(0.5, (1 - crushAmount) * 16); // Simulate bit depth
+    const sampleRateFactor = 1 + (crushAmount * 50); // Simulate sample rate reduction
+
+    for (let channel = 0; channel < input.numberOfChannels; channel++) {
+        const inputData = input.getChannelData(channel);
+        const outputData = output.getChannelData(channel);
+
+        for (let i = 0; i < inputData.length; i++) {
+             // Sample & Hold effect (downsampling)
+            if (i % Math.floor(sampleRateFactor) !== 0) {
+                outputData[i] = outputData[i-1] || 0;
+                continue;
+            }
+            
+            // Bit crushing
+            let s = inputData[i];
+            s = Math.round(s / step) * step;
+            outputData[i] = s;
+        }
+    }
+}
+
+function updateDistortion(amount) {
+    if(!distortionNode) return;
+    const k = amount;
+    const n_samples = 44100;
+    const curve = new Float32Array(n_samples);
+    const deg = Math.PI / 180;
+    
+    if(k < 1) {
+        distortionNode.curve = null; 
+        return;
+    }
+
+    for (let i = 0; i < n_samples; ++i) {
+        const x = i * 2 / n_samples - 1;
+        curve[i] = (3 + k) * x * 20 * deg / (Math.PI + k * Math.abs(x));
+    }
+    distortionNode.curve = curve;
+}
+
+function updateDelay(val) {
+    if(!delayNode) return;
+    if(val <= 0.05) {
+        delayNode.delayTime.value = 0;
+        feedbackNode.gain.value = 0;
+    } else {
+        delayNode.delayTime.value = val * 0.5; // up to 0.5s
+        feedbackNode.gain.value = 0.6; // fixed feedback for now
+    }
+}
+
+/* =========================================
+   SYSTEM CONTROL
+   ========================================= */
+function startSystem() {
+    if(!videoElement.src) return;
+    if(isPlaying) return;
+
+    initAudio();
+    videoElement.play().then(() => {
         isPlaying = true;
-    }
+        sysStatus.innerText = "PROCESSING...";
+        sysStatus.style.color = "#4af626";
+        drawLoop();
+    }).catch(e => {
+        alert("ERROR: CLICK 'RUN' AGAIN. BROWSER BLOCKED AUTOPLAY.");
+    });
+}
 
-    function stopPlayback() {
-        if (!isPlaying) return;
-        sourceVideo.pause();
-        sourceVideo.currentTime = 0;
-        if (sourceNode) {
-            sourceNode.disconnect();
-        }
-        cancelAnimationFrame(animationId);
-        isPlaying = false;
-    }
+function stopSystem() {
+    videoElement.pause();
+    videoElement.currentTime = 0;
+    isPlaying = false;
+    cancelAnimationFrame(animationId);
+    sysStatus.innerText = "HALTED";
+    sysStatus.style.color = "red";
+}
 
-    // --- ВИДЕО ОБРАБОТКА (КАНВАС) ---
-    function drawVideoFrame() {
-        if (sourceVideo.paused || sourceVideo.ended) return;
+function randomizeSettings() {
+    // Chaos function
+    document.getElementById('param-dist').value = Math.random() * 1000;
+    updateDistortion(document.getElementById('param-dist').value);
+    
+    document.getElementById('param-rate').value = 0.5 + Math.random();
+    videoElement.playbackRate = document.getElementById('param-rate').value;
 
-        canvasCtx.drawImage(sourceVideo, 0, 0, videoCanvas.width, videoCanvas.height);
+    document.getElementById('v-rgb').value = Math.random() * 30;
+    document.getElementById('v-contrast').value = 100 + Math.random() * 200;
 
-        // Применяем эффекты шакализации видео
-        const shakalLevel = parseInt(videoShakalSlider.value);
-        if (shakalLevel > 0) {
-             // Генерируем случайные смещения для глитч-эффекта
-            const noiseX = (Math.random() - 0.5) * shakalLevel * 5;
-            const noiseY = (Math.random() - 0.5) * shakalLevel * 2;
+    // Update displays
+    ['param-dist', 'param-rate', 'v-rgb', 'v-contrast'].forEach(id => {
+        document.getElementById(id).dispatchEvent(new Event('input'));
+    });
+}
+
+/* =========================================
+   VISUAL LOOP (CANVAS)
+   ========================================= */
+function drawLoop() {
+    if(!isPlaying) return;
+    
+    if(isVideo) {
+        const w = canvas.width;
+        const h = canvas.height;
+        
+        // Settings
+        const rgbOffset = parseInt(document.getElementById('v-rgb').value);
+        const contrast = parseInt(document.getElementById('v-contrast').value);
+        
+        // 1. Draw original
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.filter = `contrast(${contrast}%)`;
+        ctx.drawImage(videoElement, 0, 0, w, h);
+        ctx.filter = 'none';
+
+        // 2. RGB Split Effect (Manual Glitch)
+        if(rgbOffset > 0) {
+            // Get image data
+            // Note: getting ImageData every frame is heavy, but for this vibe heavy is okay
+            // Optimized approach: using composite operations with slight offsets
             
-            // Экстремальные CSS фильтры на канвас
-            // Контраст, Сатурация, Инверсия, Блюр
-            const contrast = 100 + (shakalLevel * 50); // до 600%
-            const saturate = 100 + (shakalLevel * 100); // до 1100%
-            const hue = shakalLevel * 15; // вращение цвета
-            const blur = shakalLevel * 0.5;
-
-            let filterString = `contrast(${contrast}%) saturate(${saturate}%) hue-rotate(${hue}deg) blur(${blur}px)`;
+            // Draw Red Channel Offset
+            ctx.globalCompositeOperation = 'screen';
+            ctx.globalAlpha = 0.5;
+            ctx.fillStyle = 'red';
+            // Simple shake
+            const dx = (Math.random() - 0.5) * rgbOffset;
+            const dy = (Math.random() - 0.5) * rgbOffset;
+            ctx.drawImage(videoElement, dx, dy, w, h);
             
-            if (shakalLevel > 8) {
-                filterString += " invert(100%)"; // Полный ад на высоких уровнях
-            }
-
-            videoCanvas.style.filter = filterString;
-            // Небольшая тряска канваса
-            videoCanvas.style.transform = `translate(${noiseX}px, ${noiseY}px)`;
-        } else {
-            // Базовый ретро-фильтр если шакал на 0
-            videoCanvas.style.filter = "sepia(100%) hue-rotate(50deg) saturate(300%) contrast(120%)";
-            videoCanvas.style.transform = "none";
+            // Draw Blue Channel Offset
+            ctx.fillStyle = 'blue';
+            ctx.drawImage(videoElement, -dx, -dy, w, h);
+            
+            ctx.globalAlpha = 1.0;
         }
 
-        animationId = requestAnimationFrame(drawVideoFrame);
+    } else {
+        // Audio Visualizer placeholder
+        const rgbOffset = parseInt(document.getElementById('v-rgb').value); // Use as shake
+        ctx.fillStyle = `rgba(0, 0, 0, 0.1)`; // Trails
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.fillStyle = '#4af626';
+        const h = canvas.height / 2;
+        const dist = parseFloat(document.getElementById('param-dist').value) / 10;
+        ctx.fillRect(Math.random()*canvas.width, h - dist, 5, dist*2);
     }
 
+    animationId = requestAnimationFrame(drawLoop);
+}
 
-    // --- ОБРАБОТЧИКИ ПОЛЗУНКОВ ---
-    function updateDisplay(input, displayId, unit = '') {
-        document.getElementById(displayId).textContent = input.value + unit;
-    }
+/* =========================================
+   RECORDING
+   ========================================= */
+function toggleRecording() {
+    const btn = document.getElementById('recBtn');
+    const status = document.getElementById('recStatus');
 
-    document.getElementById('preGain').addEventListener('input', function() {
-        updateDisplay(this, 'preGainVal');
-        if (preGainNode) preGainNode.gain.value = this.value;
-    });
+    if(btn.innerText.includes("START")) {
+        // Start
+        const canvasStream = canvas.captureStream(30);
+        const audioStream = destStream.stream;
+        
+        const combined = new MediaStream([
+            ...canvasStream.getVideoTracks(),
+            ...audioStream.getAudioTracks()
+        ]);
 
-    document.getElementById('distortion').addEventListener('input', function() {
-        updateDisplay(this, 'distortionVal');
-        updateDistortionCurve(parseInt(this.value));
-    });
-
-    document.getElementById('limiterThresh').addEventListener('input', function() {
-        updateDisplay(this, 'limiterThreshVal', 'dB');
-        if (limiterNode) limiterNode.threshold.value = this.value;
-    });
-
-    document.getElementById('playbackRate').addEventListener('input', function() {
-        updateDisplay(this, 'playbackRateVal', 'x');
-        sourceVideo.playbackRate = this.value;
-    });
-
-    document.getElementById('videoShakal').addEventListener('input', function() {
-        updateDisplay(this, 'videoShakalVal');
-        // Эффект применяется в цикле drawVideoFrame
-    });
-
-    // EQ слайдеры
-    document.querySelectorAll('.eq-slider').forEach((slider, index) => {
-        slider.addEventListener('input', function() {
-            this.nextElementSibling.textContent = (this.value > 0 ? '+' : '') + this.value + 'dB';
-            if (eqBands[index]) {
-                eqBands[index].gain.value = this.value;
-            }
-        });
-    });
-
-    // --- ЗАПИСЬ И СКАЧИВАНИЕ (ЭКСПЕРИМЕНТАЛЬНО) ---
-    startRecBtn.addEventListener('click', startRecording);
-    stopRecBtn.addEventListener('click', stopRecording);
-
-    function startRecording() {
-        if (!isPlaying) {
-            alert("СНАЧАЛА ЗАПУСТИТЕ ВОСПРОИЗВЕДЕНИЕ (PLAY)!");
-            return;
-        }
-
-        recordedChunks = [];
-        let finalStream;
-
-        // 1. Берем обработанный аудио поток
-        const audioStream = destinationStreamNode.stream;
-
-        if (isVideo) {
-             // 2. Если видео, берем поток с канваса (25 FPS для производительности)
-            const canvasStream = videoCanvas.captureStream(25);
-            // 3. Объединяем аудио и видео
-            finalStream = new MediaStream([...canvasStream.getVideoTracks(), ...audioStream.getAudioTracks()]);
-        } else {
-            // Только аудио
-            finalStream = audioStream;
-        }
-
-        // Пробуем разные кодеки, т.к. поддержка в браузерах разная
-        let options = { mimeType: isVideo ? 'video/webm;codecs=vp9,opus' : 'audio/webm;codecs=opus' };
-        if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-             options = { mimeType: isVideo ? 'video/webm' : 'audio/webm' };
-             if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-                  options = {}; // Браузер сам выберет
-             }
-        }
-
+        const opts = { mimeType: 'video/webm;codecs=vp9,opus' };
+        
         try {
-            mediaRecorder = new MediaRecorder(finalStream, options);
-        } catch (e) {
-            alert("ОШИБКА ЗАПИСИ: БРАУЗЕР НЕ ПОДДЕРЖИВАЕТ ЭТОТ ФОРМАТ.");
-            console.error(e);
-            return;
+            mediaRecorder = new MediaRecorder(combined, opts);
+        } catch(e) {
+            mediaRecorder = new MediaRecorder(combined); // fallback
         }
 
-        mediaRecorder.ondataavailable = handleDataAvailable;
-        mediaRecorder.onstop = handleStopRecording;
+        chunks = [];
+        mediaRecorder.ondataavailable = e => chunks.push(e.data);
+        mediaRecorder.onstop = saveFile;
+        
         mediaRecorder.start();
-
-        startRecBtn.style.display = 'none';
-        stopRecBtn.style.display = 'inline-block';
-        recordingIndicator.style.display = 'inline-block';
-        console.log("RECORDING STARTED...");
+        btn.innerText = "■ STOP RECORDING";
+        status.style.display = "inline";
+    } else {
+        // Stop
+        mediaRecorder.stop();
+        btn.innerText = "● START RECORDING";
+        status.style.display = "none";
     }
+}
 
-    function handleDataAvailable(event) {
-        if (event.data.size > 0) {
-            recordedChunks.push(event.data);
-        }
-    }
-
-    function stopRecording() {
-        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-            mediaRecorder.stop();
-            startRecBtn.style.display = 'inline-block';
-            stopRecBtn.style.display = 'none';
-            recordingIndicator.style.display = 'none';
-            console.log("RECORDING STOPPED. PREPARING DOWNLOAD...");
-        }
-    }
-
-    function handleStopRecording() {
-        const blob = new Blob(recordedChunks, {
-            type: isVideo ? 'video/webm' : 'audio/webm'
-        });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        document.body.appendChild(a);
-        a.style = 'display: none';
-        a.href = url;
-        const fileExt = isVideo ? 'webm' : 'webm'; // WebM контейнер универсален для записи в браузере
-        a.download = `shakalized_${new Date().getTime()}.${fileExt}`;
-        a.click();
-        window.URL.revokeObjectURL(url);
-        console.log("DOWNLOAD INITIATED.");
-    }
+function saveFile() {
+    const blob = new Blob(chunks, { type: 'video/webm' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = `shakal_export_${Date.now()}.webm`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+}
 
 </script>
-
 </body>
 </html>
