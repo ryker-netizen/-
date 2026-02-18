@@ -81,4 +81,14 @@ export async function initVideoEngine() {
       video.play();
     }
   };
+  let destruction = 0;
+let glitch = 0;
+
+export function setDestruction(v){
+  destruction = v;
+}
+
+export function setGlitch(v){
+  glitch = v;
+}
 }
