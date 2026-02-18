@@ -1,0 +1,18 @@
+index.html
+main.js
+
+/core
+  engine.js
+  stack.js
+  chaos.js
+  recorder.js
+
+/video
+  videoEngine.js
+  pixelate.js
+
+/audio
+  audioEngine.js
+
+/ui
+  ui.js
