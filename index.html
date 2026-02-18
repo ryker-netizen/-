@@ -3,34 +3,36 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-<title>Shakalizer - mobile single file</title>
+<title>Shakalizer — mobile full</title>
 <style>
-  :root{--bg:#000;--accent:#ff2d55;--muted:#222;}
+  :root{--bg:#000;--accent:#ff2d55;--muted:#111;--txt:#bfb;}
   html,body{height:100%;margin:0;background:var(--bg);color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
-  .topbar{position:fixed;left:0;right:0;top:0;padding:12px;background:rgba(0,0,0,0.65);display:flex;gap:10px;align-items:center;z-index:30}
-  .btn{background:var(--accent);border:none;color:#fff;padding:10px 14px;border-radius:12px;font-weight:600;font-size:16px}
-  .small{background:#111;padding:8px 10px;border-radius:10px;color:#ddd}
+  .topbar{position:fixed;left:0;right:0;top:0;padding:10px 8px;background:rgba(0,0,0,0.6);display:flex;gap:8px;align-items:center;z-index:40}
+  .btn{background:var(--accent);border:none;color:#fff;padding:10px 14px;border-radius:12px;font-weight:700;font-size:15px}
+  .btn-secondary{background:#222;border:1px solid #444;color:#ddd;padding:8px 12px;border-radius:10px}
   #wrap{padding-top:66px;display:flex;flex-direction:column;align-items:center;gap:10px;}
   #viewer{width:100%;max-width:980px;display:flex;flex-direction:column;align-items:center;padding:10px;box-sizing:border-box}
-  canvas{width:100%;height:auto;border-radius:8px;background:#000;display:block}
-  #controls{width:100%;max-width:980px;padding:12px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px}
+  canvas{width:100%;height:auto;border-radius:12px;background:#000;display:block}
+  #controls{width:100%;max-width:980px;padding:12px;box-sizing:border-box;display:flex;flex-direction:column;gap:12px}
   .row{display:flex;align-items:center;gap:12px}
-  label{min-width:90px;color:#9f9;font-size:16px}
+  label{min-width:92px;color:var(--txt);font-size:16px}
   input[type=range]{flex:1}
+  .smalltext{font-size:12px;color:#9a9;opacity:0.8}
+  .spacer{height:80px}
   @media (max-width:600px){
     .topbar{padding:8px}
-    .btn{font-size:15px;padding:10px}
-    label{min-width:90px;font-size:15px}
+    .btn{font-size:14px;padding:10px}
+    label{min-width:86px;font-size:15px}
   }
-  /* keep bottom space for nav */
-  .spacer{height:80px}
 </style>
 </head>
 <body>
 
 <div class="topbar">
   <button id="startBtn" class="btn">START</button>
-  <button id="loadBtn" class="small">LOAD VIDEO</button>
+  <button id="loadBtn" class="btn-secondary">LOAD VIDEO</button>
+  <button id="stopBtn" class="btn-secondary">STOP</button>
+  <button id="recBtn" class="btn-secondary">REC</button>
   <div style="flex:1"></div>
   <div style="font-size:13px;color:#aaa">SHAKALIZER v3 (mobile)</div>
 </div>
@@ -44,220 +46,368 @@
     <div class="row">
       <label for="destruction">destruction</label>
       <input id="destruction" type="range" min="0" max="100" value="0">
+      <div id="destrVal" class="smalltext">0</div>
     </div>
 
     <div class="row">
       <label for="glitch">glitch</label>
       <input id="glitch" type="range" min="0" max="100" value="0">
+      <div id="glitchVal" class="smalltext">0</div>
     </div>
+
+    <div class="row">
+      <label for="volume">volume</label>
+      <input id="volume" type="range" min="0" max="100" value="100">
+      <div id="volVal" class="smalltext">100%</div>
+    </div>
+
+    <div class="row">
+      <label>audio drive</label>
+      <input id="drive" type="range" min="0" max="100" value="0">
+      <div id="driveVal" class="smalltext">0</div>
+    </div>
+
+    <div class="smalltext">Нажми START → затем LOAD VIDEO. Первый клик по странице разблокирует звук.</div>
   </div>
 
   <div class="spacer"></div>
 </div>
 
 <script type="module">
-/* Single-file mobile engine -- paste this whole file and replace existing index.html */
-/* Quick explanation: start -> init engine. load -> choose file. sliders -> control effects. */
-
+/* Полный мобильный движок — заменяй index.html целиком */
 const startBtn = document.getElementById('startBtn');
 const loadBtn  = document.getElementById('loadBtn');
+const stopBtn  = document.getElementById('stopBtn');
+const recBtn   = document.getElementById('recBtn');
+
 const canvas   = document.getElementById('screen');
 const ctx      = canvas.getContext('2d');
 
 const destrSlider = document.getElementById('destruction');
 const glitchSlider = document.getElementById('glitch');
+const volSlider = document.getElementById('volume');
+const driveSlider = document.getElementById('drive');
 
-let state = {
-  destruction: 0.0,
-  glitch: 0.0
-};
+const destrVal = document.getElementById('destrVal');
+const glitchVal = document.getElementById('glitchVal');
+const volVal = document.getElementById('volVal');
+const driveVal = document.getElementById('driveVal');
 
-let engine = null; // will hold returned API
-
-// Resize canvas to mobile-friendly size
+let devicePR = window.devicePixelRatio || 1;
 function resizeCanvas(){
-  const w = Math.min(window.innerWidth, 980);
-  // use portion of viewport height so controls visible
-  const h = Math.max( Math.min(window.innerHeight*0.58, Math.floor(w*9/16)), 120);
-  canvas.width = Math.floor(w * devicePixelRatio);
-  canvas.height = Math.floor(h * devicePixelRatio);
-  canvas.style.width = w + 'px';
-  canvas.style.height = h + 'px';
-  ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+  const cssW = Math.min(window.innerWidth, 980);
+  const cssH = Math.max(120, Math.min(window.innerHeight*0.58, Math.floor(cssW * 9/16)));
+  canvas.style.width = cssW + 'px';
+  canvas.style.height = cssH + 'px';
+  canvas.width = Math.floor(cssW * devicePR);
+  canvas.height = Math.floor(cssH * devicePR);
 }
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
-// Simple engine factory
+/* ---------- Engine factory ---------- */
 async function initVideoEngine(){
-  // Only one video element internally, created here
+  // create video element (hidden)
   const video = document.createElement('video');
   video.playsInline = true;
-  video.muted = true; // start muted; we will unmute on user gesture
+  video.muted = true;
   video.loop = true;
-  video.crossOrigin = "anonymous";
   video.style.display = 'none';
   document.body.appendChild(video);
 
-  let playing = false;
-  let rafId = null;
+  // audio graph
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const srcNode = audioCtx.createMediaElementSource(video);
+  const gain = audioCtx.createGain();
+  const driveNode = audioCtx.createWaveShaper();
+  // simple drive curve - will be updated
+  function makeDistortion(amount){
+    const k = typeof amount === 'number' ? amount : 0;
+    const n = 44100;
+    const curve = new Float32Array(n);
+    const deg = Math.PI / 180;
+    for (let i = 0; i < n; ++i) {
+      const x = i * 2 / n - 1;
+      curve[i] = ((3 + k) * x * 20 * deg) / (Math.PI + k * Math.abs(x));
+    }
+    return curve;
+  }
+  driveNode.curve = makeDistortion(0);
+  driveNode.oversample = '2x';
+  srcNode.connect(driveNode);
+  driveNode.connect(gain);
+  gain.connect(audioCtx.destination);
 
-  function drawFrame(){
-    rafId = requestAnimationFrame(drawFrame);
+  // recorder
+  let mediaRecorder = null;
+  let recordedChunks = [];
+
+  // state
+  let rafId = null;
+  let running = false;
+
+  // core render
+  function render(){
+    rafId = requestAnimationFrame(render);
 
     if(!video || video.readyState < 2) return;
+    const bw = canvas.width;   // backing pixels
+    const bh = canvas.height;
 
-    // draw video to canvas sized element area (canvas CSS size)
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    const cw = canvas.width / devicePixelRatio;
-    const ch = canvas.height / devicePixelRatio;
+    // Draw video stretched to backing size (full cover)
+    const vw = video.videoWidth || bw;
+    const vh = video.videoHeight || bh;
 
-    // draw with covering scale (fit width)
-    let vw = video.videoWidth || cw;
-    let vh = video.videoHeight || ch;
-    // fit to canvas width, keep aspect
-    const scale = Math.max(cw / vw, ch / vh);
-    const dw = vw * scale;
-    const dh = vh * scale;
-    const dx = (cw - dw) / 2;
-    const dy = (ch - dh) / 2;
+    // compute cover scale
+    const scale = Math.max(bw / vw, bh / vh);
+    const dw = Math.floor(vw * scale);
+    const dh = Math.floor(vh * scale);
+    const dx = Math.floor((bw - dw) / 2);
+    const dy = Math.floor((bh - dh) / 2);
 
+    // draw into full-res bitmap
+    ctx.clearRect(0,0,bw,bh);
     ctx.drawImage(video, 0, 0, vw, vh, dx, dy, dw, dh);
 
-    // apply destruction/glitch effects (cheap and mobile-friendly)
+    // effects operate on full backing pixels
     const g = state.glitch;
     const d = state.destruction;
 
-    // small pixel-shift / color-scramble
     if(g > 0.001 || d > 0.001){
-      try {
-        const img = ctx.getImageData(0,0,cw, ch);
+      try{
+        const img = ctx.getImageData(0,0,bw,bh);
         const data = img.data;
         const len = data.length;
-        // glitch: random bright pixels based on g
-        const chance = Math.min(0.35, g * 0.25);
-        for(let i = 0; i < len; i += 4 * 8){
+
+        // glitch: random bright pixels
+        const chance = Math.min(0.45, g * 0.35);
+        for(let i = 0; i < len; i += 4 * 12){
           if(Math.random() < chance){
-            // red burst
             data[i] = 255;
-            data[i+1] = Math.random() < 0.5 ? 0 : data[i+1];
-            data[i+2] = Math.random() < 0.5 ? 0 : data[i+2];
+            data[i+1] = Math.floor(Math.random()*200);
+            data[i+2] = Math.floor(Math.random()*200);
           }
         }
 
-        // destruction: horizontal slices jitter
+        // destruction: horizontal slice shifts — operate on backing pixels
         if(d > 0.001){
-          const rows = Math.floor(6 + d * 20);
-          for(let r = 0; r < rows; r++){
-            const y = Math.floor(Math.random() * ch);
-            const h = Math.max(1, Math.floor(1 + d * 8 * Math.random()));
-            const shift = Math.floor((Math.random() - 0.5) * d * 60);
+          const rows = Math.floor(3 + d * 24);
+          for(let r=0;r<rows;r++){
+            const y = Math.floor(Math.random() * bh);
+            const h = Math.max(1, Math.floor(1 + d * 6 * Math.random()));
+            const shift = Math.floor((Math.random() - 0.5) * d * 180);
             if(shift === 0) continue;
-            const srcY = Math.min(Math.max(0, y), ch-1);
-            const slice = ctx.getImageData(0, srcY, cw, h);
-            ctx.putImageData(slice, shift, srcY);
+            // copy row bytes manually
+            const rowBytes = Math.min(bw, bw) * 4 * h;
+            const srcIdx = (y * bw * 4);
+            const slice = new Uint8ClampedArray(rowBytes);
+            slice.set(data.subarray(srcIdx, srcIdx + rowBytes));
+            // put shifted
+            let destX = shift;
+            // clamp
+            if(destX > 0){
+              // shift right: zero pad left
+              for(let yy=0; yy<h; yy++){
+                const sr = (y+yy)*bw*4;
+                const dr = sr + destX*4;
+                data.copyWithin(dr, sr, sr + (bw - destX)*4);
+                // fill left with slice? skip for speed
+              }
+            } else {
+              // shift left
+              for(let yy=0; yy<h; yy++){
+                const sr = (y+yy)*bw*4;
+                const dr = sr + destX*4;
+                data.copyWithin(dr, sr - destX*4, sr + bw*4);
+              }
+            }
           }
         }
 
         ctx.putImageData(img, 0, 0);
       }catch(e){
-        // getImageData may throw on some devices with cross-origin / huge canvases: ignore gracefully
-        // console.warn('effect skip', e);
+        // some devices may throw on very large getImageData; ignore gracefully
+        // console.warn('effects skipped', e);
       }
     }
   }
 
-  // start / stop and API
-  function startRendering(){
-    if(!rafId) drawFrame();
+  function start(){
+    if(!running){
+      running = true;
+      render();
+    }
   }
 
-  function stopRendering(){
-    if(rafId) cancelAnimationFrame(rafId);
-    rafId = null;
+  function stop(){
+    if(running){
+      running = false;
+      if(rafId) cancelAnimationFrame(rafId);
+      rafId = null;
+    }
   }
 
   async function loadVideoFile(file){
     if(!file) return;
+    const url = URL.createObjectURL(file);
+    video.src = url;
     try {
-      // revoke old url(s) later?
-      const url = URL.createObjectURL(file);
-      video.src = url;
-      // ensure video tries to load and play (may require user gesture)
-      await video.load();
-      // attempt play; may be blocked if not unmuted and no gesture, but video.muted is true so should play
-      video.play().catch(()=>{});
-      playing = true;
-      startRendering();
-    } catch(err){
-      console.error('load fail', err);
-    }
+      // load then play (muted allowed)
+      await video.play().catch(()=>{});
+    } catch(e){}
+    start();
   }
 
   function unmute(){
-    try {
+    try{
+      if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume().catch(()=>{});
       video.muted = false;
-      video.volume = 1.0;
+      gain.gain.value = Number(volSlider.value)/100;
       video.play().catch(()=>{});
-    } catch(e){}
+    }catch(e){}
+  }
+
+  function setVolume(v){
+    gain.gain.value = v;
+  }
+
+  function setDrive(amount){
+    // map 0..1 to distortion
+    const k = amount * 50;
+    driveNode.curve = makeDistortion(k);
+  }
+
+  // recording: capture canvas + audio from video
+  let recStream = null;
+  function startRecording(){
+    recordedChunks = [];
+    // combine canvas + audio
+    const canvasStream = (canvas.captureStream && canvas.captureStream(30)) || null;
+    const audioStream = video.captureStream ? (video.captureStream().getAudioTracks().length ? video.captureStream() : null) : null;
+    if(canvasStream && audioStream){
+      // merge
+      recStream = new MediaStream();
+      canvasStream.getVideoTracks().forEach(t=>recStream.addTrack(t));
+      audioStream.getAudioTracks().forEach(t=>recStream.addTrack(t));
+    } else if(canvasStream){
+      recStream = canvasStream;
+    } else {
+      alert('Запись не поддерживается этим браузером');
+      return;
+    }
+
+    try{
+      mediaRecorder = new MediaRecorder(recStream, { mimeType: 'video/webm;codecs=vp8,opus' });
+    }catch(e){
+      try{ mediaRecorder = new MediaRecorder(recStream); }catch(e2){ alert('Не удалось создать рекордер'); return; }
+    }
+
+    mediaRecorder.ondataavailable = ev=>{
+      if(ev.data && ev.data.size) recordedChunks.push(ev.data);
+    };
+    mediaRecorder.onstop = ()=>{
+      const blob = new Blob(recordedChunks, { type: 'video/webm' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'shakal_record.webm';
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+    mediaRecorder.start();
+  }
+
+  function stopRecording(){
+    if(mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
   }
 
   // expose API
   return {
     loadVideo: loadVideoFile,
     unmute,
-    stop(){
-      if(video){ video.pause(); video.src=''; }
-      stopRendering();
-    },
+    stop,
+    start,
     setDestruction(v){ state.destruction = v; },
-    setGlitch(v){ state.glitch = v; }
+    setGlitch(v){ state.glitch = v; },
+    setVolume(v){ setVolume(v); },
+    setDrive(v){ setDrive(v); },
+    startRecording,
+    stopRecording
   };
 }
 
-// UI wiring
+/* ---------- Wiring UI ---------- */
+let engine = null;
+
 startBtn.addEventListener('click', async ()=>{
-  if(engine) return; // already started
+  if(engine) return;
   engine = await initVideoEngine();
 
-  // wire load button to file picker
+  // after engine created, allow load & controls
+  // wire load
   loadBtn.addEventListener('click', ()=>{
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'video/*,audio/*';
-    input.onchange = (e)=>{
+    const inp = document.createElement('input');
+    inp.type = 'file';
+    inp.accept = 'video/*,audio/*';
+    inp.onchange = e=>{
       const f = e.target.files && e.target.files[0];
       if(f && engine) engine.loadVideo(f);
     };
-    input.click();
+    inp.click();
   });
 
-  // unmute on first tap (user gesture)
+  stopBtn.addEventListener('click', ()=>{
+    if(engine && engine.stop) engine.stop();
+  });
+
+  recBtn.addEventListener('click', ()=>{
+    if(!engine) return;
+    if(recBtn.dataset.rec === '1'){
+      // stop
+      recBtn.dataset.rec = '0';
+      recBtn.textContent = 'REC';
+      engine.stopRecording && engine.stopRecording();
+    } else {
+      recBtn.dataset.rec = '1';
+      recBtn.textContent = 'STOP REC';
+      engine.startRecording && engine.startRecording();
+    }
+  });
+
+  // unmute on first tap
   document.body.addEventListener('click', ()=>{
     if(engine && engine.unmute) engine.unmute();
   }, { once: true });
 
   // sliders
   destrSlider.addEventListener('input', (e)=>{
-    const v = Number(e.target.value) / 100;
-    state.destruction = v;
-    if(engine && engine.setDestruction) engine.setDestruction(v);
+    const v = Number(e.target.value)/100;
+    destrVal.textContent = Math.round(v*100);
+    if(engine) engine.setDestruction(v);
   });
 
   glitchSlider.addEventListener('input', (e)=>{
-    const v = Number(e.target.value) / 100;
-    state.glitch = v;
-    if(engine && engine.setGlitch) engine.setGlitch(v);
+    const v = Number(e.target.value)/100;
+    glitchVal.textContent = Math.round(v*100);
+    if(engine) engine.setGlitch(v);
   });
 
-  // small UX: automatically open file picker once, optional
-  // loadBtn.click();
-});
+  volSlider.addEventListener('input', (e)=>{
+    const v = Number(e.target.value)/100;
+    volVal.textContent = Math.round(v*100) + '%';
+    if(engine) engine.setVolume && engine.setVolume(v);
+  });
 
-// safety: if user refreshes and engine exists, reconnect UI (unlikely)
-window.addEventListener('load', ()=>{
-  resizeCanvas();
-});
+  driveSlider.addEventListener('input', (e)=>{
+    const v = Number(e.target.value)/100;
+    driveVal.textContent = Math.round(v*100);
+    if(engine) engine.setDrive && engine.setDrive(v);
+  });
+
+}); // end startBtn
+
+// initial canvas sizing
+window.addEventListener('load', ()=>{ try{ resizeCanvas(); }catch(e){} });
 
 </script>
 </body>
