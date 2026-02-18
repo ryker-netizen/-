@@ -1,4 +1,4 @@
-import { initUI } from "./ui/ui.js";
+import { initUI } from "./ui/ui.js?v=2";
 import { initVideoEngine } from "./video/videoEngine.js";
 
 let engine = null;
