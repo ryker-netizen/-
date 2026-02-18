@@ -72,6 +72,12 @@ video.controls = false;
         setPixel(v) {
             pixel = v * 40;
         }
+        unmute(){
+  if(video){
+    video.muted = false;
+    video.play();
+  }
+        }
 
     };
 }
