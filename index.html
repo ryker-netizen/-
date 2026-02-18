@@ -83,22 +83,31 @@ let recorder;
 let chunks = [];
 let recording=false;
 
+let audioCtx;
+let dest;
+
 fileInput.onchange = e=>{
   const file = e.target.files[0];
   video.src = URL.createObjectURL(file);
 };
 
 video.onloadedmetadata = ()=>{
-
-  // сохраняем вертикаль правильно
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
-
 };
 
 playBtn.onclick = ()=>{
   video.play();
   draw();
+
+  // создаём аудио контекст при первом клике
+  if(!audioCtx){
+    audioCtx = new AudioContext();
+    const src = audioCtx.createMediaElementSource(video);
+    dest = audioCtx.createMediaStreamDestination();
+    src.connect(dest);
+    src.connect(audioCtx.destination);
+  }
 };
 
 stopBtn.onclick = ()=>{
@@ -155,8 +164,15 @@ recBtn.onclick = ()=>{
 
     chunks=[];
 
-    const stream = canvas.captureStream(30);
-    recorder = new MediaRecorder(stream,{mimeType:"video/webm"});
+    const canvasStream = canvas.captureStream(30);
+
+    // добавляем аудио дорожку
+    if(dest){
+      const audioTracks = dest.stream.getAudioTracks();
+      audioTracks.forEach(track=>canvasStream.addTrack(track));
+    }
+
+    recorder = new MediaRecorder(canvasStream,{mimeType:"video/webm"});
 
     recorder.ondataavailable = e=>{
       if(e.data.size>0) chunks.push(e.data);
