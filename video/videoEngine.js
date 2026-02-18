@@ -1,9 +1,4 @@
 export async function initVideoEngine() {
-return {
-  unmute,
-  setDestruction,
-  setGlitch
-}
   
   const video = document.createElement("video");
   video.playsInline = true;
@@ -96,4 +91,9 @@ export function setDestruction(v){
 export function setGlitch(v){
   glitch = v;
 }
+  return {
+  unmute,
+  setDestruction,
+  setGlitch
+};
 }
