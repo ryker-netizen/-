@@ -3,23 +3,23 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-<title>Shakalizer — fixed (vertical video + effects)</title>
+<title>Shakalizer — fixed full</title>
 <style>
   :root{--bg:#000;--accent:#ff2d55;--muted:#111;--txt:#9fd;}
   html,body{height:100%;margin:0;background:var(--bg);color:#fff;font-family:system-ui,Roboto,Arial;}
-  .topbar{position:fixed;left:0;right:0;top:0;padding:10px;background:rgba(0,0,0,0.6);display:flex;gap:8px;align-items:center;z-index:40}
+  .topbar{position:fixed;left:0;right:0;top:0;padding:10px;background:rgba(0,0,0,0.65);display:flex;gap:8px;align-items:center;z-index:40}
   .btn{background:var(--accent);border:none;color:#fff;padding:8px 12px;border-radius:10px;font-weight:700}
   .btn2{background:#222;color:#ddd;padding:8px 10px;border-radius:8px;border:1px solid #333}
-  #wrap{padding-top:60px;display:flex;flex-direction:column;align-items:center;gap:12px}
+  #wrap{padding-top:66px;display:flex;flex-direction:column;align-items:center;gap:12px}
   #viewer{width:100%;max-width:980px;padding:6px;box-sizing:border-box}
-  canvas{width:100%;height:auto;border-radius:10px;display:block;background:#000}
+  canvas{width:100%;height:auto;border-radius:12px;display:block;background:#000}
   #controls{width:100%;max-width:980px;padding:6px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px}
   .row{display:flex;align-items:center;gap:12px}
-  label{min-width:100px;color:var(--txt);font-size:15px}
+  label{min-width:92px;color:var(--txt);font-size:15px}
   input[type=range]{flex:1}
-  .val{width:42px;text-align:right;color:#afa;font-size:13px}
+  .val{width:46px;text-align:right;color:#afa;font-size:13px}
   .hint{font-size:12px;color:#999}
-  .spacer{height:80px}
+  .spacer{height:90px}
 </style>
 </head>
 <body>
@@ -28,25 +28,26 @@
   <button id="startBtn" class="btn">START</button>
   <button id="loadBtn" class="btn2">LOAD VIDEO</button>
   <button id="stopBtn" class="btn2">STOP</button>
+  <button id="recBtn" class="btn2">REC</button>
   <div style="flex:1"></div>
-  <div style="font-size:13px;color:#aaa">SHAKALIZER — fixes</div>
+  <div style="font-size:13px;color:#aaa">SHAKALIZER — fixed</div>
 </div>
 
 <div id="wrap">
   <div id="viewer">
-    <canvas id="canvas"></canvas>
+    <canvas id="screen"></canvas>
   </div>
 
   <div id="controls">
     <div class="row">
-      <label for="destructionSlider">destruction</label>
-      <input id="destructionSlider" type="range" min="0" max="100" value="0">
+      <label for="destruction">destruction</label>
+      <input id="destruction" type="range" min="0" max="100" value="0">
       <div id="destrVal" class="val">0</div>
     </div>
 
     <div class="row">
-      <label for="glitchSlider">glitch</label>
-      <input id="glitchSlider" type="range" min="0" max="100" value="0">
+      <label for="glitch">glitch</label>
+      <input id="glitch" type="range" min="0" max="100" value="0">
       <div id="glitchVal" class="val">0</div>
     </div>
 
@@ -57,204 +58,308 @@
 </div>
 
 <script>
-/* Single-file engine with fixes:
-   - canvas sizing uses video.videoWidth/video.videoHeight (vertical videos OK)
-   - effects applied to full canvas (getImageData over whole backing size)
-   - sliders wired to setDestruction / setGlitch
+/*
+  Полный single-file движок.
+  Основные принципы:
+  - canvas.backing pixels вычисляются из размера видео * devicePixelRatio (чтобы эффекты работали на весь кадр)
+  - drawImage/putImageData выполняются в backing-пикселях
+  - sliders wired -> setDestruction / setGlitch
+  - рекордер: комбинирует canvas.captureStream + audio track из video.captureStream (где доступно)
 */
 
 const startBtn = document.getElementById('startBtn');
-const loadBtn = document.getElementById('loadBtn');
-const stopBtn = document.getElementById('stopBtn');
+const loadBtn  = document.getElementById('loadBtn');
+const stopBtn  = document.getElementById('stopBtn');
+const recBtn   = document.getElementById('recBtn');
 
-const canvas = document.getElementById('canvas');
+const canvas = document.getElementById('screen');
 const ctx = canvas.getContext('2d');
 
-const destrSlider = document.getElementById('destructionSlider');
-const glitchSlider = document.getElementById('glitchSlider');
+const destrSlider = document.getElementById('destruction');
+const glitchSlider = document.getElementById('glitch');
 const destrVal = document.getElementById('destrVal');
 const glitchVal = document.getElementById('glitchVal');
 
-let devicePR = window.devicePixelRatio || 1;
+const DPR = window.devicePixelRatio || 1;
 
-// state variables (global-ish)
-let destruction = 0;
-let glitch = 0;
+let video = null;
+let rafId = null;
+let running = false;
+
+// effect params
+let destruction = 0.0;
+let glitch = 0.0;
 
 function setDestruction(v){ destruction = v; }
 function setGlitch(v){ glitch = v; }
 
-// Helper: set canvas backing size based on video natural size
-function setCanvasToVideoSize(video){
-  // use natural video size as backing pixels
-  const vw = video.videoWidth || 640;
-  const vh = video.videoHeight || 360;
-  // set backing size (use devicePixelRatio to keep quality)
-  canvas.width = Math.round(vw * devicePR);
-  canvas.height = Math.round(vh * devicePR);
-  // set displayed CSS size to match video aspect ratio and fit screen width
+// ——— resize backing canvas to video natural size (preserve aspect, use DPR) ———
+function setCanvasToVideoSize(v){
+  // natural size
+  const vw = v.videoWidth || 640;
+  const vh = v.videoHeight || 360;
+
+  // CSS size: fit to screen width (but keep aspect)
   const cssW = Math.min(window.innerWidth, vw);
   const cssH = Math.round(cssW * (vh / vw));
+
+  // backing pixel size
+  const bw = Math.max(1, Math.round(cssW * DPR));
+  const bh = Math.max(1, Math.round(cssH * DPR));
+
+  canvas.width = bw;
+  canvas.height = bh;
   canvas.style.width = cssW + 'px';
   canvas.style.height = cssH + 'px';
-  // set transform so drawing coordinates are in CSS pixels
-  ctx.setTransform(devicePR, 0, 0, devicePR, 0, 0);
+
+  // IMPORTANT: do NOT change ctx.transform; operate in backing pixels coordinates directly
+  // We'll draw using backing pixel measurements below
 }
 
-// Engine
-let videoEl = null;
-let raf = null;
+// ——— core render loop — draw to full backing pixel buffer and apply effects there ———
+function startRender(){
+  if(running) return;
+  running = true;
 
-function startRenderLoop(){
-  if(raf) return;
-  function draw(){
-    raf = requestAnimationFrame(draw);
-    if(!videoEl || videoEl.readyState < 2) return;
+  function frame(){
+    rafId = requestAnimationFrame(frame);
+    if(!video || video.readyState < 2) return;
 
-    // draw into canvas (note: ctx transform set to devicePixelRatio)
-    const cssW = canvas.width / devicePR;
-    const cssH = canvas.height / devicePR;
+    const bw = canvas.width;   // backing pixels
+    const bh = canvas.height;
 
-    ctx.clearRect(0,0, cssW, cssH);
+    // draw video into canvas backing pixels using cover scaling
+    const vw = video.videoWidth || bw;
+    const vh = video.videoHeight || bh;
 
-    // draw video into CSS pixels area (cover)
-    const vw = videoEl.videoWidth || cssW;
-    const vh = videoEl.videoHeight || cssH;
-    // compute scale to cover canvas
-    const scale = Math.max(cssW / vw, cssH / vh);
-    const dw = vw * scale;
-    const dh = vh * scale;
-    const dx = (cssW - dw) / 2;
-    const dy = (cssH - dh) / 2;
-    ctx.drawImage(videoEl, 0,0, vw, vh, dx, dy, dw, dh);
+    const scale = Math.max(bw / vw, bh / vh); // cover
+    const dw = Math.floor(vw * scale);
+    const dh = Math.floor(vh * scale);
+    const dx = Math.floor((bw - dw) / 2);
+    const dy = Math.floor((bh - dh) / 2);
 
-    // APPLY EFFECTS to entire backing pixel area
+    // draw: source video natural pixels -> destination backing pixels
+    // drawImage accepts source sizes in natural pixels, dest in backing pixels
+    ctx.clearRect(0,0,bw,bh);
+    ctx.drawImage(video, 0, 0, vw, vh, dx, dy, dw, dh);
+
+    // APPLY EFFECTS to full backing buffer
     if(destruction > 0 || glitch > 0){
-      try{
-        // operate on full backing pixels
-        const img = ctx.getImageData(0, 0, cssW, cssH); // coords in CSS pixels because transform applied
+      try {
+        const img = ctx.getImageData(0, 0, bw, bh);
         const data = img.data;
+        const len = data.length;
 
         // destruction: random colored pixels across whole image
-        for(let i = 0; i < data.length; i += 4){
-          if(Math.random() < destruction * 0.08){
+        const chance = Math.min(0.6, destruction * 0.12);
+        for(let i = 0; i < len; i += 4){
+          if(Math.random() < chance){
             data[i] = 255;
             data[i+1] = Math.floor(Math.random()*255);
             data[i+2] = Math.floor(Math.random()*255);
           }
         }
 
-        // glitch: horizontal line shifts
-        for(let y = 0; y < cssH; y++){
-          if(Math.random() < glitch * 0.2){
-            const shift = (Math.random()*80 - 40) | 0;
-            // get row
-            const row = ctx.getImageData(0, y, cssW, 1);
-            ctx.putImageData(row, shift, y);
+        // glitch: horizontal slice shifts (operate in backing pixels)
+        if(glitch > 0){
+          const rows = Math.max(1, Math.floor(1 + glitch * 30));
+          for(let r = 0; r < rows; r++){
+            const y = Math.floor(Math.random() * bh);
+            const h = Math.max(1, Math.floor(1 + glitch * 6 * Math.random()));
+            const shift = (Math.random() - 0.5) * glitch * 160; // can be negative
+            if(shift === 0) continue;
+            // get slice bytes and write shifted
+            // safe small-slice approach:
+            const row = ctx.getImageData(0, y, bw, h);
+            ctx.putImageData(row, Math.round(shift), y);
           }
         }
 
         ctx.putImageData(img, 0, 0);
-      }catch(e){
-        // getImageData can throw on some devices for big canvases; ignore gracefully
+      } catch (e) {
+        // On some phones large getImageData may throw — ignore and skip effects
         // console.warn('effects skipped', e);
       }
     }
   }
-  draw();
+
+  frame();
 }
 
-function stopRenderLoop(){
-  if(raf) cancelAnimationFrame(raf);
-  raf = null;
+function stopRender(){
+  if(rafId) cancelAnimationFrame(rafId);
+  rafId = null;
+  running = false;
 }
 
-// init video element and wiring
+// ——— engine init / load ———
 async function initEngine(){
-  if(videoEl) return; // already
-  videoEl = document.createElement('video');
-  videoEl.playsInline = true;
-  videoEl.muted = true;
-  videoEl.loop = true;
-  videoEl.style.display = 'none';
-  document.body.appendChild(videoEl);
+  if(video) return;
+  video = document.createElement('video');
+  video.playsInline = true;
+  video.muted = true; // start muted (browser autoplay rules)
+  video.loop = true;
+  video.style.display = 'none';
+  document.body.appendChild(video);
 
-  videoEl.onloadeddata = function(){
-    // *** FIX FOR PROBLEM 1: set canvas size to video natural size ***
-    setCanvasToVideoSize(videoEl);
-    // start playing (muted is allowed)
-    videoEl.play().catch(()=>{});
-    // start render loop
-    startRenderLoop();
+  video.onloadedmetadata = function(){
+    // set canvas to video aspect
+    setCanvasToVideoSize(video);
   };
 
-  // when metadata loaded but before play, ensure canvas size
-  videoEl.onloadedmetadata = function(){
-    // set canvas right away to avoid flicker
-    setCanvasToVideoSize(videoEl);
+  video.onloadeddata = function(){
+    // when data available, ensure canvas matches and start rendering
+    setCanvasToVideoSize(video);
+    // try to autoplay (muted) then render
+    video.play().catch(()=>{});
+    startRender();
   };
 
-  // unmute on user tap (once)
+  // unlock audio on first user gesture
   document.body.addEventListener('click', ()=>{
-    if(videoEl){
-      try{ videoEl.muted = false; videoEl.play().catch(()=>{}); }catch(e){}
-    }
+    try{ video.muted = false; video.play().catch(()=>{}); }catch(e){}
   }, { once: true });
 }
 
-// load file (from input)
-function openFilePickerAndLoad(){
+// file picker
+function openAndLoad(){
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = 'video/*,audio/*';
-  input.onchange = (e)=>{
+  input.onchange = e=>{
     const f = e.target.files && e.target.files[0];
     if(!f) return;
     const url = URL.createObjectURL(f);
-    if(!videoEl) initEngine().then(()=>{ videoEl.src = url; });
-    else videoEl.src = url;
-    // play attempt
-    videoEl.play().catch(()=>{});
+    initEngine().then(()=> {
+      video.src = url;
+      // play attempt
+      video.play().catch(()=>{});
+    });
   };
   input.click();
 }
 
-// wiring UI buttons & sliders
+// stop / clear
+function stopEverything(){
+  try{
+    if(video){
+      video.pause();
+      video.src = '';
+      // don't remove element, keep for UI
+    }
+  }catch(e){}
+  stopRender();
+}
+
+// ——— recording (canvas + audio) ———
+let mediaRecorder = null;
+let recordedChunks = [];
+let recActive = false;
+
+function startRecording(){
+  if(recActive) return;
+  recordedChunks = [];
+
+  // capture canvas video
+  let canvasStream = null;
+  try { canvasStream = canvas.captureStream(30); } catch(e){ canvasStream = null; }
+
+  // capture audio from video if available
+  let audioTracks = [];
+  try {
+    const vStream = video.captureStream ? video.captureStream() : null;
+    if(vStream) audioTracks = vStream.getAudioTracks();
+  } catch(e){ audioTracks = []; }
+
+  let finalStream = null;
+  if(canvasStream){
+    finalStream = new MediaStream();
+    canvasStream.getVideoTracks().forEach(t=> finalStream.addTrack(t));
+    audioTracks.forEach(t=> finalStream.addTrack(t));
+  } else {
+    alert('Запись не поддерживается этим браузером');
+    return;
+  }
+
+  try {
+    mediaRecorder = new MediaRecorder(finalStream, { mimeType: 'video/webm;codecs=vp8,opus' });
+  } catch(e){
+    try { mediaRecorder = new MediaRecorder(finalStream); } catch(err){ alert('Не удалось создать рекордер'); return; }
+  }
+
+  mediaRecorder.ondataavailable = ev => {
+    if(ev.data && ev.data.size) recordedChunks.push(ev.data);
+  };
+
+  mediaRecorder.onstop = () => {
+    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'shakal_record.webm';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  mediaRecorder.start();
+  recActive = true;
+  recBtn.textContent = 'STOP REC';
+  recBtn.dataset.rec = '1';
+}
+
+function stopRecording(){
+  if(mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+  recActive = false;
+  recBtn.textContent = 'REC';
+  recBtn.dataset.rec = '0';
+}
+
+// ——— UI wiring ———
 startBtn.addEventListener('click', async ()=>{
   await initEngine();
-  // enable load if needed (load button already present)
 });
 
-loadBtn.addEventListener('click', ()=> openFilePickerAndLoad());
-stopBtn.addEventListener('click', ()=>{
-  if(videoEl){
-    try{ videoEl.pause(); videoEl.src = ''; }catch(e){}
+loadBtn.addEventListener('click', ()=> openAndLoad());
+
+stopBtn.addEventListener('click', ()=> stopEverything());
+
+recBtn.addEventListener('click', ()=>{
+  if(recBtn.dataset.rec === '1'){
+    stopRecording();
+  } else {
+    startRecording();
   }
-  stopRenderLoop();
 });
 
-// sliders wiring (problem 2)
+// sliders wired to setters
 destrSlider.addEventListener('input', (e)=>{
-  const v = Number(e.target.value)/100;
+  const v = Number(e.target.value) / 100;
   destrVal.textContent = Math.round(v*100);
   setDestruction(v);
 });
 glitchSlider.addEventListener('input', (e)=>{
-  const v = Number(e.target.value)/100;
+  const v = Number(e.target.value) / 100;
   glitchVal.textContent = Math.round(v*100);
   setGlitch(v);
 });
 
-// responsive: if window resizes and video is present, adjust displayed CSS size
+// resize behavior: if video active, recompute canvas displayed size
 window.addEventListener('resize', ()=>{
-  if(videoEl && videoEl.videoWidth && videoEl.videoHeight){
-    setCanvasToVideoSize(videoEl);
+  if(video && video.videoWidth && video.videoHeight){
+    setCanvasToVideoSize(video);
   }
 });
 
-// initial canvas placeholder size
-canvas.style.width = Math.min(window.innerWidth, 720) + 'px';
-canvas.style.height = Math.round((Math.min(window.innerWidth,720) * 9/16)) + 'px';
+// initial placeholder size
+(function initPlaceholder(){
+  const cssW = Math.min(window.innerWidth, 720);
+  const cssH = Math.round(cssW * 9/16);
+  canvas.style.width = cssW + 'px';
+  canvas.style.height = cssH + 'px';
+  canvas.width = Math.round(cssW * DPR);
+  canvas.height = Math.round(cssH * DPR);
+})();
+
 </script>
 </body>
 </html>
