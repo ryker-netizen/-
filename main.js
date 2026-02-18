@@ -10,18 +10,6 @@ window.addEventListener("DOMContentLoaded", () => {
   startBtn.addEventListener("click", async () => {
     alert("START CLICKED");
 
-    try {
-      alert("INIT ENGINE...");
-      engine = await initVideoEngine();
-      alert("ENGINE INIT OK");
-
-      initUI(engine);
-      alert("UI INIT OK");
-
-    } catch (e) {
-      alert("ERROR: " + e.message);
-      console.error(e);
-    }
 document.body.addEventListener("click", ()=>{
   if(engine.unmute) engine.unmute();
 },{once:true});
