@@ -1,736 +1,201 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1.0" />
-<title>Shakalizer — Meat Mode</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Glitch Lab</title>
+
 <style>
-:root{--bg:#000;--accent:#ff2d55;--muted:#111;--txt:#9fd;}
-html,body{height:100%;margin:0;background:var(--bg);color:#fff;font-family:system-ui,Roboto,Arial;}
-.topbar{position:fixed;left:0;right:0;top:0;padding:10px;background:rgba(0,0,0,0.65);display:flex;gap:8px;align-items:center;z-index:40}
-.btn{background:var(--accent);border:none;color:#fff;padding:8px 12px;border-radius:10px;font-weight:700}
-.btn2{background:#222;color:#ddd;padding:8px 10px;border-radius:8px;border:1px solid #333}
-#wrap{padding-top:66px;display:flex;flex-direction:column;align-items:center;gap:12px}
-#viewer{width:100%;max-width:980px;padding:6px;box-sizing:border-box}
-canvas{width:100%;height:auto;border-radius:12px;display:block;background:#000}
-#controls{width:100%;max-width:980px;padding:6px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px}
-.row{display:flex;align-items:center;gap:12px}
-label{min-width:96px;color:var(--txt);font-size:15px}
-input[type=range]{flex:1}
-.val{width:48px;text-align:right;color:#afa;font-size:13px}
-.hint{font-size:12px;color:#999}
-.preset-row{display:flex;gap:8px}
-.small{font-size:12px;color:#bbb}
-.spacer{height:100px}
+body{
+  background:#000;
+  color:#fff;
+  font-family:sans-serif;
+  margin:0;
+  padding:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+#top{
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  background:#000;
+  padding:10px;
+  z-index:10;
+}
+
+.controls{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+}
+
+canvas{
+  margin-top:140px;
+  max-width:100%;
+  height:auto;
+  background:#000;
+}
+
+input[type=range]{
+  width:100%;
+}
+
+button{
+  padding:8px;
+  font-size:14px;
+}
 </style>
 </head>
+
 <body>
 
-<div class="topbar">
-  <button id="startBtn" class="btn">START</button>
-  <button id="loadBtn" class="btn2">LOAD VIDEO</button>
-  <button id="stopBtn" class="btn2">STOP</button>
-  <button id="recBtn" class="btn2">REC</button>
-  <div style="flex:1"></div>
-  <div style="font-size:13px;color:#aaa">SHAKALIZER — MEAT MODE</div>
+<div id="top">
+
+<div class="controls">
+<input type="file" id="file">
+<button id="play">play</button>
+<button id="stop">stop</button>
+<button id="rec">rec</button>
+<button id="download">download</button>
 </div>
 
-<div id="wrap">
-  <div id="viewer">
-    <canvas id="screen"></canvas>
-  </div>
+<label>destruction</label>
+<input type="range" id="destruction" min="0" max="100">
 
-  <div id="controls">
-    <div class="row">
-      <label>destruction</label>
-      <input id="destruction" type="range" min="0" max="100" value="0">
-      <div id="destrVal" class="val">0</div>
-    </div>
+<label>glitch</label>
+<input type="range" id="glitch" min="0" max="100">
 
-    <div class="row">
-      <label>glitch</label>
-      <input id="glitch" type="range" min="0" max="100" value="0">
-      <div id="glitchVal" class="val">0</div>
-    </div>
+<label>volume</label>
+<input type="range" id="volume" min="0" max="1" step="0.01" value="1">
 
-    <div class="row">
-      <label>pixelize</label>
-      <input id="pixel" type="range" min="0" max="100" value="0">
-      <div id="pixelVal" class="val">0</div>
-    </div>
-
-    <div class="row">
-      <label>rgb shift</label>
-      <input id="rgb" type="range" min="0" max="100" value="0">
-      <div id="rgbVal" class="val">0</div>
-    </div>
-
-    <div class="row">
-      <label>scanlines</label>
-      <input id="scan" type="range" min="0" max="100" value="0">
-      <div id="scanVal" class="val">0</div>
-    </div>
-
-    <div class="row">
-      <label>volume</label>
-      <input id="volume" type="range" min="0" max="100" value="100">
-      <div id="volVal" class="val">100%</div>
-    </div>
-
-    <div class="row">
-      <label>drive</label>
-      <input id="drive" type="range" min="0" max="100" value="0">
-      <div id="driveVal" class="val">0</div>
-    </div>
-
-    <div class="row">
-      <label>bitcrush</label>
-      <input id="crush" type="range" min="0" max="100" value="0">
-      <div id="crushVal" class="val">0</div>
-    </div>
-
-    <div class="row preset-row">
-      <button class="btn2" id="presetA">PRESET A</button>
-      <button class="btn2" id="presetB">PRESET B</button>
-      <button class="btn2" id="presetC">PRESET C</button>
-      <button class="btn2" id="presetD">PRESET D</button>
-      <button class="btn2" id="presetE">PRESET E</button>
-    </div>
-
-    <div class="hint small">START → LOAD VIDEO. Тап по экрану разблокирует звук.</div>
-  </div>
-
-  <div class="spacer"></div>
 </div>
+
+<video id="video" style="display:none"></video>
+<canvas id="canvas"></canvas>
 
 <script>
-/* SHAKALIZER — full meat build
-   Visual effects:
-     - destruction (random color pixels)
-     - glitch (slices shift)
-     - pixelize (downscale/upscale)
-     - rgb shift (channel offset)
-     - scanlines (overlay)
-     - noise (small speckle)
-   Audio effects:
-     - volume (gain)
-     - drive (waveshaper)
-     - bitcrush (ScriptProcessor)
-     - lowpass (Biquad)
-   Presets A-E: quick combos
-   Record: canvas + audio (if available)
-*/
+const fileInput = document.getElementById("file");
+const video = document.getElementById("video");
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
 
-const startBtn = document.getElementById('startBtn');
-const loadBtn  = document.getElementById('loadBtn');
-const stopBtn  = document.getElementById('stopBtn');
-const recBtn   = document.getElementById('recBtn');
+const playBtn = document.getElementById("play");
+const stopBtn = document.getElementById("stop");
+const recBtn = document.getElementById("rec");
+const downloadBtn = document.getElementById("download");
 
-const canvas = document.getElementById('screen');
-const ctx = canvas.getContext('2d');
+const destructionSlider = document.getElementById("destruction");
+const glitchSlider = document.getElementById("glitch");
+const volumeSlider = document.getElementById("volume");
 
-const destrS = document.getElementById('destruction');
-const glitchS = document.getElementById('glitch');
-const pixelS = document.getElementById('pixel');
-const rgbS = document.getElementById('rgb');
-const scanS = document.getElementById('scan');
+let destruction = 0;
+let glitch = 0;
+let recording = false;
+let recorder;
+let chunks = [];
 
-const volumeS = document.getElementById('volume');
-const driveS = document.getElementById('drive');
-const crushS = document.getElementById('crush');
-
-const destrVal = document.getElementById('destrVal');
-const glitchVal = document.getElementById('glitchVal');
-const pixelVal = document.getElementById('pixelVal');
-const rgbVal = document.getElementById('rgbVal');
-const scanVal = document.getElementById('scanVal');
-const volVal = document.getElementById('volVal');
-const driveVal = document.getElementById('driveVal');
-const crushVal = document.getElementById('crushVal');
-
-const presetA = document.getElementById('presetA');
-const presetB = document.getElementById('presetB');
-const presetC = document.getElementById('presetC');
-const presetD = document.getElementById('presetD');
-const presetE = document.getElementById('presetE');
-
-const DPR = window.devicePixelRatio || 1;
-
-let video = null;
-let raf = null;
-let running = false;
-
-// visual params
-let params = {
-  destruction: 0,
-  glitch: 0,
-  pixel: 0,
-  rgb: 0,
-  scan: 0
+fileInput.onchange = e=>{
+  const file = e.target.files[0];
+  video.src = URL.createObjectURL(file);
 };
 
-// audio graph
-let audioCtx = null;
-let srcNode = null;
-let gainNode = null;
-let waveNode = null;
-let biquad = null;
-let crusherNode = null;
+video.onloadeddata = ()=>{
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+};
 
-let mediaRecorder = null;
-let recordedChunks = [];
-let recording = false;
+playBtn.onclick = ()=>{
+  video.play();
+  draw();
+};
 
-function setCanvasSizeForVideo(v){
-  const vw = v.videoWidth || 640;
-  const vh = v.videoHeight || 360;
-  const cssW = Math.min(window.innerWidth, vw);
-  const cssH = Math.round(cssW * (vh / vw));
-  const bw = Math.max(1, Math.round(cssW * DPR));
-  const bh = Math.max(1, Math.round(cssH * DPR));
-  canvas.width = bw;
-  canvas.height = bh;
-  canvas.style.width = cssW + 'px';
-  canvas.style.height = cssH + 'px';
-}
+stopBtn.onclick = ()=>{
+  video.pause();
+};
 
-// simple waveshaper curve builder
-function makeDistortionCurve(amount){
-  const k = amount;
-  const n_samples = 44100;
-  const curve = new Float32Array(n_samples);
-  const deg = Math.PI / 180;
-  for (let i = 0; i < n_samples; ++i ) {
-    const x = i * 2 / n_samples - 1;
-    curve[i] = (3 + k) * x * 20 * deg / (Math.PI + k * Math.abs(x));
-  }
-  return curve;
-}
+volumeSlider.oninput = e=>{
+  video.volume = e.target.value;
+};
 
-// create audio graph
-function ensureAudioGraph(){
-  if(audioCtx) return;
-  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  gainNode = audioCtx.createGain();
-  waveNode = audioCtx.createWaveShaper();
-  biquad = audioCtx.createBiquadFilter();
-  biquad.type = 'lowpass';
-  biquad.frequency.value = 20000;
-  // ScriptProcessor for bitcrush (fallback)
-  try {
-    crusherNode = audioCtx.createScriptProcessor(4096, 1, 1);
-    let reduction = 1;
-    crusherNode.onaudioprocess = function(e){
-      if(reduction <= 1) return;
-      const input = e.inputBuffer.getChannelData(0);
-      const output = e.outputBuffer.getChannelData(0);
-      let phaser = 0;
-      let last = 0;
-      for(let i=0;i<input.length;i++){
-        phaser += reduction;
-        if(phaser >= 1.0){
-          phaser -= 1.0;
-          last = input[i];
-        }
-        output[i] = last;
+destructionSlider.oninput = e=>{
+  destruction = e.target.value/100;
+};
+
+glitchSlider.oninput = e=>{
+  glitch = e.target.value/100;
+};
+
+function draw(){
+  if(video.paused || video.ended) return;
+
+  ctx.drawImage(video,0,0,canvas.width,canvas.height);
+
+  if(destruction>0 || glitch>0){
+
+    const img = ctx.getImageData(0,0,canvas.width,canvas.height);
+    const data = img.data;
+
+    for(let i=0;i<data.length;i+=4){
+      if(Math.random()<destruction*0.05){
+        data[i]=255;
+        data[i+1]=Math.random()*255;
+        data[i+2]=Math.random()*255;
       }
+    }
+
+    for(let y=0;y<canvas.height;y++){
+      if(Math.random()<glitch*0.1){
+        const shift=(Math.random()*80-40)|0;
+        const row=ctx.getImageData(0,y,canvas.width,1);
+        ctx.putImageData(row,shift,y);
+      }
+    }
+
+    ctx.putImageData(img,0,0);
+  }
+
+  requestAnimationFrame(draw);
+}
+
+recBtn.onclick = ()=>{
+
+  if(!recording){
+
+    const stream = canvas.captureStream(30);
+    recorder = new MediaRecorder(stream);
+
+    recorder.ondataavailable=e=>chunks.push(e.data);
+
+    recorder.onstop=e=>{
+      const blob = new Blob(chunks,{type:"video/webm"});
+      downloadBtn.onclick = ()=>{
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "glitch.webm";
+        a.click();
+      };
+      chunks=[];
     };
-    crusherNode.reduction = () => reduction;
-    crusherNode.setReduction = (r)=>{ reduction = r; };
-  } catch(e){
-    crusherNode = null;
+
+    recorder.start();
+    recording=true;
+    recBtn.textContent="stop rec";
+
+  }else{
+
+    recorder.stop();
+    recording=false;
+    recBtn.textContent="rec";
+
   }
 
-  // don't connect source yet (will be after video created)
-  // final chain: source -> waveNode -> biquad -> crusherNode -> gain -> destination
-  gainNode.gain.value = 1.0;
-}
-
-// set audio nodes once video exists
-function connectAudioToVideo(){
-  if(!video) return;
-  ensureAudioGraph();
-
-  // If source already exists, disconnect
-  if(srcNode){
-    try{ srcNode.disconnect(); }catch(e){}
-  }
-  try{
-    srcNode = audioCtx.createMediaElementSource(video);
-  }catch(e){ srcNode = null; }
-
-  if(!srcNode){
-    // can't create MediaElementSource on some contexts — give up gracefully
-    return;
-  }
-
-  // connect nodes
-  srcNode.connect(waveNode);
-  waveNode.connect(biquad);
-  if(crusherNode){
-    biquad.connect(crusherNode);
-    crusherNode.connect(gainNode);
-  } else {
-    biquad.connect(gainNode);
-  }
-  gainNode.connect(audioCtx.destination);
-}
-
-// update audio params
-function setVolume(v){
-  if(gainNode) gainNode.gain.value = v;
-}
-function setDrive(v){
-  if(waveNode) waveNode.curve = makeDistortionCurve(v * 100);
-}
-function setLowpass(freq){
-  if(biquad) biquad.frequency.value = freq;
-}
-function setCrush(amount){
-  if(crusherNode){
-    // map amount 0..1 to reduction 1..24
-    const r = Math.max(1, Math.round(1 + amount * 23));
-    crusherNode.setReduction && crusherNode.setReduction(r);
-  }
-}
-
-/* ---------- RENDER LOOP (full backing pixel operations) ---------- */
-
-function startRender(){
-  if(running) return;
-  running = true;
-  function loop(){
-    raf = requestAnimationFrame(loop);
-    if(!video || video.readyState < 2) return;
-    const bw = canvas.width;
-    const bh = canvas.height;
-
-    // compute cover scaling based on video natural pixels -> destination backing pixels
-    const vw = video.videoWidth || bw;
-    const vh = video.videoHeight || bh;
-    const scale = Math.max(bw / vw, bh / vh);
-    const dw = Math.floor(vw * scale);
-    const dh = Math.floor(vh * scale);
-    const dx = Math.floor((bw - dw) / 2);
-    const dy = Math.floor((bh - dh) / 2);
-
-    // draw video into backing pixels
-    ctx.clearRect(0,0,bw,bh);
-    ctx.drawImage(video, 0, 0, vw, vh, dx, dy, dw, dh);
-
-    // high-level parameters
-    const d = params.destruction;
-    const g = params.glitch;
-    const p = params.pixel;
-    const r = params.rgb;
-    const s = params.scan;
-
-    // PIXELIZE first (cheap): draw to temp small canvas and upsample
-    if(p > 0.001){
-      const size = Math.max(2, Math.floor(1 + (1 - p) * 64)); // map to small resolution inversely
-      // small offscreen
-      let off = document._sh_off;
-      if(!off){
-        off = document.createElement('canvas');
-        document._sh_off = off;
-      }
-      off.width = Math.max(1, Math.floor(bw / size));
-      off.height = Math.max(1, Math.floor(bh / size));
-      const octx = off.getContext('2d');
-      // draw current canvas into offscreen scaled down then draw back scaled up nearest
-      octx.clearRect(0,0,off.width,off.height);
-      octx.drawImage(canvas, 0, 0, bw, bh, 0, 0, off.width, off.height);
-      ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(off, 0, 0, off.width, off.height, 0, 0, bw, bh);
-      ctx.imageSmoothingEnabled = true;
-    }
-
-    // Get image data for heavy effects
-    if(d > 0.001 || g > 0.001 || r > 0.001 || s > 0.001){
-      try{
-        const img = ctx.getImageData(0,0,bw,bh);
-        const data = img.data;
-        const len = data.length;
-
-        // destruction: sprinkle random bright pixels across full buffer
-        const chance = Math.min(0.9, d * 0.15);
-        for(let i=0;i<len;i+=4){
-          if(Math.random() < chance){
-            data[i] = 255;
-            data[i+1] = Math.floor(Math.random()*255);
-            data[i+2] = Math.floor(Math.random()*255);
-          }
-        }
-
-        // rgb shift: copy channels with offsets
-        if(r > 0.001){
-          const maxShift = Math.ceil(r * 20);
-          const rOff = Math.floor((Math.random()*2-1) * maxShift);
-          const gOff = Math.floor((Math.random()*2-1) * maxShift);
-          const bOff = Math.floor((Math.random()*2-1) * maxShift);
-          // naive per-pixel shift (costly), do small sample of pixels to create colored smear
-          for(let y=0;y<bh;y+=Math.max(1,Math.floor(5 - r*4))){
-            for(let x=0;x< bw;x+=Math.max(1,Math.floor(5 - r*4))){
-              const idx = (y*bw + x) * 4;
-              const sx = Math.min(bw-1, Math.max(0, x + rOff));
-              const sy = Math.min(bh-1, Math.max(0, y + gOff));
-              const sidx = (sy * bw + sx) * 4;
-              // copy some channels
-              data[idx] = data[sidx];       // R <- R at shifted
-              data[idx+1] = data[sidx+1];   // G
-              data[idx+2] = data[sidx+2];   // B
-            }
-          }
-        }
-
-        // glitch: horizontal slices move
-        if(g > 0.001){
-          const sliceCount = Math.max(1, Math.floor(1 + g * 30));
-          for(let sIdx=0; sIdx<sliceCount; sIdx++){
-            const y = Math.floor(Math.random() * bh);
-            const h = Math.max(1, Math.floor(1 + g * 6 * Math.random()));
-            const shift = Math.floor((Math.random() - 0.5) * g * 160);
-            // get row image and re-put shifted (fast)
-            const row = ctx.getImageData(0, y, bw, h);
-            ctx.putImageData(row, shift, y);
-          }
-        }
-
-        // scanlines: overlay by darkening every Nth row
-        if(s > 0.001){
-          const intensity = s * 0.6;
-          for(let y=0;y<bh;y++){
-            if(y % Math.max(1, Math.floor(4 - s*3)) === 0){
-              for(let x=0;x<bw;x++){
-                const idx = (y*bw + x) * 4;
-                data[idx] = data[idx] * (1 - intensity);
-                data[idx+1] = data[idx+1] * (1 - intensity);
-                data[idx+2] = data[idx+2] * (1 - intensity);
-              }
-            }
-          }
-        }
-
-        ctx.putImageData(img, 0, 0);
-      }catch(e){
-        // ignore heavy effect if getImageData fails on this device
-        // console.warn('effects skipped', e);
-      }
-    }
-
-    // small noise speckle overlay always cheap
-    if(params.destruction > 0.01){
-      // draw tiny dots randomly
-      const dots = Math.min(1000, Math.floor(params.destruction * 80));
-      ctx.fillStyle = 'rgba(255,255,255,0.06)';
-      for(let i=0;i<dots;i++){
-        const x = Math.random() * bw;
-        const y = Math.random() * bh;
-        ctx.fillRect(x, y, 1, 1);
-      }
-    }
-  }
-  loop();
-}
-
-function stopRender(){
-  if(raf) cancelAnimationFrame(raf);
-  raf = null;
-  running = false;
-}
-
-/* ---------- Engine init / video load ---------- */
-
-async function initEngine(){
-  if(video) return;
-  video = document.createElement('video');
-  video.playsInline = true;
-  video.muted = true;
-  video.loop = true;
-  video.style.display = 'none';
-  document.body.appendChild(video);
-
-  video.onloadedmetadata = function(){
-    setCanvasSizeForVideo(video);
-  };
-
-  video.onloadeddata = function(){
-    setCanvasSizeForVideo(video);
-    video.play().catch(()=>{});
-    // connect audio graph now that video exists
-    try{
-      if(!audioCtx) ensureAudioGraphAndConnect();
-    }catch(e){}
-    startRender();
-  };
-
-  // unlock audio on first gesture
-  document.body.addEventListener('click', ()=>{
-    try{
-      if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume().catch(()=>{});
-      video.muted = false;
-      video.play().catch(()=>{});
-    }catch(e){}
-  }, { once: true });
-}
-
-function openAndLoad(){
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = 'video/*,audio/*';
-  input.onchange = e=>{
-    const f = e.target.files && e.target.files[0];
-    if(!f) return;
-    const url = URL.createObjectURL(f);
-    initEngine().then(()=> {
-      video.src = url;
-      video.play().catch(()=>{});
-    });
-  };
-  input.click();
-}
-
-function stopAll(){
-  if(video){
-    try{ video.pause(); video.src = ''; }catch(e){}
-  }
-  stopRender();
-}
-
-/* ---------- Audio graph (create and connect) ---------- */
-
-function ensureAudioGraphAndConnect(){
-  if(audioCtx) return;
-  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  gainNode = audioCtx.createGain();
-  waveNode = audioCtx.createWaveShaper();
-  biquad = audioCtx.createBiquadFilter();
-  biquad.type = 'lowpass';
-  biquad.frequency.value = 22000;
-
-  // ScriptProcessor for bitcrush (fallback)
-  try{
-    crusherNode = audioCtx.createScriptProcessor(4096, 1, 1);
-    let reduction = 1;
-    crusherNode.onaudioprocess = function(e){
-      if(reduction <= 1) return;
-      const input = e.inputBuffer.getChannelData(0);
-      const output = e.outputBuffer.getChannelData(0);
-      let ph = 0;
-      let last = 0;
-      for(let i=0;i<input.length;i++){
-        ph += reduction;
-        if(ph >= 1.0){
-          ph -= 1.0;
-          last = input[i];
-        }
-        output[i] = last;
-      }
-    };
-    crusherNode.setReduction = (r)=>{ reduction = r; };
-  }catch(e){
-    crusherNode = null;
-  }
-
-  // connect
-  try{
-    srcNode = audioCtx.createMediaElementSource(video);
-  }catch(e){
-    srcNode = null;
-  }
-
-  if(srcNode){
-    srcNode.connect(waveNode);
-    waveNode.connect(biquad);
-    if(crusherNode){
-      biquad.connect(crusherNode);
-      crusherNode.connect(gainNode);
-    } else {
-      biquad.connect(gainNode);
-    }
-    gainNode.connect(audioCtx.destination);
-  }
-}
-
-// AUDIO param helpers
-function applyVolume(v){ if(gainNode) gainNode.gain.value = v; }
-function applyDrive(v){ if(waveNode) waveNode.curve = makeDistortionCurve(v*100); }
-function applyLowpass(valueHz){ if(biquad) biquad.frequency.value = valueHz; }
-function applyCrush(amount){ if(crusherNode) { const reduction = Math.max(1, Math.round(1 + amount*30)); crusherNode.setReduction(reduction); } }
-
-/* ---------- Recording: capture canvas + audio ---------- */
-
-function startRecording(){
-  if(recording) return;
-  recordedChunks = [];
-
-  const canvasStream = canvas.captureStream(30);
-  // audio: prefer track from video captureStream
-  let audioTracks = [];
-  try{
-    const vStream = video.captureStream ? video.captureStream() : null;
-    if(vStream) audioTracks = vStream.getAudioTracks();
-  }catch(e){ audioTracks = []; }
-
-  const final = new MediaStream();
-  canvasStream.getVideoTracks().forEach(t => final.addTrack(t));
-  audioTracks.forEach(t => final.addTrack(t));
-
-  try {
-    mediaRecorder = new MediaRecorder(final, { mimeType: 'video/webm;codecs=vp8,opus' });
-  } catch(e) {
-    try{ mediaRecorder = new MediaRecorder(final); }catch(err){ alert('Recorder not available'); return; }
-  }
-
-  mediaRecorder.ondataavailable = (ev)=> { if(ev.data && ev.data.size) recordedChunks.push(ev.data); };
-  mediaRecorder.onstop = ()=> {
-    const blob = new Blob(recordedChunks, { type: 'video/webm' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'shakal_record.webm';
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-  mediaRecorder.start();
-  recording = true;
-  recBtn.textContent = 'STOP REC';
-  recBtn.dataset.rec = '1';
-}
-
-function stopRecording(){
-  if(mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
-  recording = false;
-  recBtn.textContent = 'REC';
-  recBtn.dataset.rec = '0';
-}
-
-/* ---------- UI wiring ---------- */
-
-startBtn.addEventListener('click', async ()=>{
-  await initEngine();
-  ensureAudioGraphAndConnect();
-});
-
-loadBtn.addEventListener('click', ()=> openAndLoad());
-stopBtn.addEventListener('click', ()=> stopAll());
-
-recBtn.addEventListener('click', ()=>{
-  if(recBtn.dataset.rec === '1') stopRecording(); else startRecording();
-});
-
-// sliders -> params and audio
-destrS.addEventListener('input', (e)=> {
-  params.destruction = Number(e.target.value) / 100;
-  destrVal.textContent = Math.round(params.destruction * 100);
-});
-glitchS.addEventListener('input', (e)=> {
-  params.glitch = Number(e.target.value) / 100;
-  glitchVal.textContent = Math.round(params.glitch * 100);
-});
-pixelS.addEventListener('input', (e)=> {
-  params.pixel = 1 - (Number(e.target.value) / 100); // invert for algorithm
-  pixelVal.textContent = Math.round(Number(e.target.value));
-});
-rgbS.addEventListener('input', (e)=> {
-  params.rgb = Number(e.target.value) / 100;
-  rgbVal.textContent = Math.round(params.rgb * 100);
-});
-scanS.addEventListener('input', (e)=> {
-  params.scan = Number(e.target.value) / 100;
-  scanVal.textContent = Math.round(params.scan * 100);
-});
-
-volumeS.addEventListener('input', (e)=>{
-  const v = Number(e.target.value)/100;
-  volVal.textContent = Math.round(v*100) + '%';
-  applyVolume(v);
-});
-driveS.addEventListener('input', (e)=>{
-  const v = Number(e.target.value)/100;
-  driveVal.textContent = Math.round(v*100);
-  applyDrive(v);
-});
-crushS.addEventListener('input', (e)=>{
-  const v = Number(e.target.value)/100;
-  crushVal.textContent = Math.round(v*100);
-  applyCrush(v);
-});
-
-// presets
-presetA.addEventListener('click', ()=>{
-  // dirty brutal
-  destrS.value = 100; destrS.dispatchEvent(new Event('input'));
-  glitchS.value = 80; glitchS.dispatchEvent(new Event('input'));
-  pixelS.value = 50; pixelS.dispatchEvent(new Event('input'));
-  rgbS.value = 40; rgbS.dispatchEvent(new Event('input'));
-  scanS.value = 20; scanS.dispatchEvent(new Event('input'));
-  driveS.value = 60; driveS.dispatchEvent(new Event('input'));
-  crushS.value = 50; crushS.dispatchEvent(new Event('input'));
-  volumeS.value = 90; volumeS.dispatchEvent(new Event('input'));
-});
-
-presetB.addEventListener('click', ()=>{
-  // soft vintage
-  destrS.value = 10; destrS.dispatchEvent(new Event('input'));
-  glitchS.value = 10; glitchS.dispatchEvent(new Event('input'));
-  pixelS.value = 20; pixelS.dispatchEvent(new Event('input'));
-  rgbS.value = 30; rgbS.dispatchEvent(new Event('input'));
-  scanS.value = 40; scanS.dispatchEvent(new Event('input'));
-  driveS.value = 20; driveS.dispatchEvent(new Event('input'));
-  crushS.value = 0; crushS.dispatchEvent(new Event('input'));
-  volumeS.value = 100; volumeS.dispatchEvent(new Event('input'));
-});
-
-presetC.addEventListener('click', ()=>{
-  // pixel madness
-  destrS.value = 30; destrS.dispatchEvent(new Event('input'));
-  glitchS.value = 50; glitchS.dispatchEvent(new Event('input'));
-  pixelS.value = 100; pixelS.dispatchEvent(new Event('input'));
-  rgbS.value = 60; rgbS.dispatchEvent(new Event('input'));
-  scanS.value = 10; scanS.dispatchEvent(new Event('input'));
-  driveS.value = 30; driveS.dispatchEvent(new Event('input'));
-  crushS.value = 20; crushS.dispatchEvent(new Event('input'));
-  volumeS.value = 90; volumeS.dispatchEvent(new Event('input'));
-});
-
-presetD.addEventListener('click', ()=>{
-  // audio destroy
-  destrS.value = 20; destrS.dispatchEvent(new Event('input'));
-  glitchS.value = 80; glitchS.dispatchEvent(new Event('input'));
-  pixelS.value = 10; pixelS.dispatchEvent(new Event('input'));
-  rgbS.value = 10; rgbS.dispatchEvent(new Event('input'));
-  scanS.value = 0; scanS.dispatchEvent(new Event('input'));
-  driveS.value = 90; driveS.dispatchEvent(new Event('input'));
-  crushS.value = 80; crushS.dispatchEvent(new Event('input'));
-  volumeS.value = 85; volumeS.dispatchEvent(new Event('input'));
-});
-
-presetE.addEventListener('click', ()=>{
-  // wild chaos
-  destrS.value = 100; destrS.dispatchEvent(new Event('input'));
-  glitchS.value = 100; glitchS.dispatchEvent(new Event('input'));
-  pixelS.value = 60; pixelS.dispatchEvent(new Event('input'));
-  rgbS.value = 80; rgbS.dispatchEvent(new Event('input'));
-  scanS.value = 60; scanS.dispatchEvent(new Event('input'));
-  driveS.value = 100; driveS.dispatchEvent(new Event('input'));
-  crushS.value = 100; crushS.dispatchEvent(new Event('input'));
-  volumeS.value = 95; volumeS.dispatchEvent(new Event('input'));
-});
-
-/* Resize placeholder */
-(function initPlaceholder(){
-  const cssW = Math.min(window.innerWidth, 900);
-  const cssH = Math.round(cssW * 9/16);
-  canvas.style.width = cssW + 'px';
-  canvas.style.height = cssH + 'px';
-  canvas.width = Math.round(cssW * DPR);
-  canvas.height = Math.round(cssH * DPR);
-})();
-
-window.addEventListener('resize', ()=>{
-  if(video && video.videoWidth && video.videoHeight) setCanvasSizeForVideo(video);
-});
+};
 </script>
+
 </body>
 </html>
