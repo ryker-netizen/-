@@ -1,3 +1,13 @@
+let destruction = 0;
+let glitch = 0;
+
+function setDestruction(v){
+  destruction = v;
+}
+
+function setGlitch(v){
+  glitch = v;
+}
 export async function initVideoEngine() {
   
   const video = document.createElement("video");
