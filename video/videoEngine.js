@@ -28,16 +28,26 @@ function resize(){
     window.addEventListener("resize", resize);
     resize();
 
-    function render() {
-        requestAnimationFrame(render);
+    function render(){
 
-        if (!video.videoWidth) return;
+  ctx.drawImage(video,0,0,canvas.width,canvas.height);
 
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  // ГЛИТЧ
+  const img = ctx.getImageData(0,0,canvas.width,canvas.height);
+  const data = img.data;
 
-        if (pixel > 0) {
-            pixelate(ctx, canvas, pixel);
-        }
+  for(let i=0;i<data.length;i+=40){
+    if(Math.random()<0.3){
+      data[i] = 255;
+      data[i+1] = 0;
+      data[i+2] = 0;
+    }
+  }
+
+  ctx.putImageData(img,0,0);
+
+  requestAnimationFrame(render);
+    }
 
         if (chaos > 0) {
             glitch(ctx, canvas, chaos);
