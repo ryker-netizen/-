@@ -1,37 +1,16 @@
-export async function initVideoEngine(){
+export function initUI(engine){
 
-  const canvas = document.getElementById("canvas");
-  const ctx = canvas.getContext("2d");
+  document.getElementById("load").onclick = ()=>{
+    const input = document.createElement("input");
+    input.type="file";
+    input.accept="video/*";
 
-  let video = null;
-  let playing = false;
+    input.onchange = e=>{
+      const file = e.target.files[0];
+      engine.loadVideo(file);
+    };
 
-  function resize(){
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-  }
-  resize();
-  window.addEventListener("resize", resize);
-
-  function render(){
-    if(playing && video){
-      ctx.drawImage(video,0,0,canvas.width,canvas.height);
-    }
-    requestAnimationFrame(render);
-  }
-  render();
-
-  return {
-
-    async loadVideo(file){
-      video = document.createElement("video");
-      video.src = URL.createObjectURL(file);
-      video.muted = true;
-      video.playsInline = true;
-
-      await video.play();
-      playing = true;
-    }
-
+    input.click();
   };
+
 }
