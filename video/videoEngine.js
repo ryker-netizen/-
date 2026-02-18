@@ -1,5 +1,10 @@
 export async function initVideoEngine() {
-
+return {
+  unmute,
+  setDestruction,
+  setGlitch
+}
+  
   const video = document.createElement("video");
   video.playsInline = true;
   video.muted = false;
