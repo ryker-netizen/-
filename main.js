@@ -3,18 +3,17 @@ import { initVideoEngine } from "./video/videoEngine.js";
 
 let engine = null;
 
-window.addEventListener("DOMContentLoaded", async () => {
-  console.log("START");
+window.addEventListener("DOMContentLoaded", () => {
 
-  try {
-    engine = await initVideoEngine();
-    console.log("ENGINE OK", engine);
+  const startBtn = document.getElementById("startBtn");
 
-    initUI(engine);
-    console.log("UI OK");
+  startBtn.addEventListener("click", async () => {
+    if (!engine) {
+      console.log("INIT ENGINE");
+      engine = await initVideoEngine();
+      initUI(engine);
+      console.log("ENGINE READY");
+    }
+  });
 
-  } catch (e) {
-    console.error("CRASH:", e);
-    alert("CRASH: " + e.message);
-  }
 });
