@@ -3,22 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Glitch Lab</title>
+<title>GLITCH MONSTER</title>
 
 <style>
 body{
   background:#000;
   color:#fff;
-  font-family:sans-serif;
   margin:0;
-  padding:0;
+  font-family:sans-serif;
   display:flex;
   flex-direction:column;
   align-items:center;
 }
 
-#top{
+#panel{
   position:fixed;
   top:0;
   left:0;
@@ -28,41 +26,27 @@ body{
   z-index:10;
 }
 
-.controls{
-  display:flex;
-  flex-wrap:wrap;
-  gap:6px;
-}
-
 canvas{
-  margin-top:140px;
+  margin-top:170px;
   max-width:100%;
   height:auto;
   background:#000;
 }
 
-input[type=range]{
-  width:100%;
-}
-
-button{
-  padding:8px;
-  font-size:14px;
-}
+button,input{margin:4px;}
 </style>
 </head>
 
 <body>
 
-<div id="top">
-
-<div class="controls">
+<div id="panel">
 <input type="file" id="file">
 <button id="play">play</button>
 <button id="stop">stop</button>
 <button id="rec">rec</button>
 <button id="download">download</button>
-</div>
+
+<br>
 
 <label>destruction</label>
 <input type="range" id="destruction" min="0" max="100">
@@ -72,10 +56,9 @@ button{
 
 <label>volume</label>
 <input type="range" id="volume" min="0" max="1" step="0.01" value="1">
-
 </div>
 
-<video id="video" style="display:none"></video>
+<video id="video" playsinline style="display:none"></video>
 <canvas id="canvas"></canvas>
 
 <script>
@@ -95,18 +78,22 @@ const volumeSlider = document.getElementById("volume");
 
 let destruction = 0;
 let glitch = 0;
-let recording = false;
+
 let recorder;
 let chunks = [];
+let recording=false;
 
 fileInput.onchange = e=>{
   const file = e.target.files[0];
   video.src = URL.createObjectURL(file);
 };
 
-video.onloadeddata = ()=>{
+video.onloadedmetadata = ()=>{
+
+  // сохраняем вертикаль правильно
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
+
 };
 
 playBtn.onclick = ()=>{
@@ -141,7 +128,7 @@ function draw(){
     const data = img.data;
 
     for(let i=0;i<data.length;i+=4){
-      if(Math.random()<destruction*0.05){
+      if(Math.random()<destruction*0.06){
         data[i]=255;
         data[i+1]=Math.random()*255;
         data[i+2]=Math.random()*255;
@@ -149,8 +136,8 @@ function draw(){
     }
 
     for(let y=0;y<canvas.height;y++){
-      if(Math.random()<glitch*0.1){
-        const shift=(Math.random()*80-40)|0;
+      if(Math.random()<glitch*0.12){
+        const shift=(Math.random()*120-60)|0;
         const row=ctx.getImageData(0,y,canvas.width,1);
         ctx.putImageData(row,shift,y);
       }
@@ -166,20 +153,25 @@ recBtn.onclick = ()=>{
 
   if(!recording){
 
+    chunks=[];
+
     const stream = canvas.captureStream(30);
-    recorder = new MediaRecorder(stream);
+    recorder = new MediaRecorder(stream,{mimeType:"video/webm"});
 
-    recorder.ondataavailable=e=>chunks.push(e.data);
+    recorder.ondataavailable = e=>{
+      if(e.data.size>0) chunks.push(e.data);
+    };
 
-    recorder.onstop=e=>{
+    recorder.onstop = ()=>{
       const blob = new Blob(chunks,{type:"video/webm"});
+      const url = URL.createObjectURL(blob);
+
       downloadBtn.onclick = ()=>{
         const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
+        a.href = url;
         a.download = "glitch.webm";
         a.click();
       };
-      chunks=[];
     };
 
     recorder.start();
