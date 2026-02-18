@@ -8,7 +8,6 @@ export class Engine {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");
 
-    // адаптация под устройство
     this.isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
 
     this.resize();
@@ -23,17 +22,24 @@ export class Engine {
       destruction: 0,
       pixel: 1
     };
+
+    this.running = false;
   }
 
   resize(){
-    const w = window.innerWidth;
-    const h = window.innerHeight * (this.isMobile ? 0.55 : 0.7);
+    this.canvas.width = window.innerWidth;
+    this.canvas.height = window.innerHeight*0.55;
+  }
 
-    this.canvas.width = w;
-    this.canvas.height = h;
+  unlock(){
+    // важно для мобилок
+    this.video.video.muted = true;
+    this.video.video.play().catch(()=>{});
   }
 
   start(){
+    if(this.running) return;
+    this.running = true;
     requestAnimationFrame(()=>this.loop());
   }
 
