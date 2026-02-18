@@ -22,6 +22,10 @@ window.addEventListener("DOMContentLoaded", () => {
       alert("ERROR: " + e.message);
       console.error(e);
     }
+document.body.addEventListener("click", ()=>{
+  if(engine.unmute) engine.unmute();
+},{once:true});
+    
   });
 
 });
