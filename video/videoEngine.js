@@ -17,10 +17,13 @@ video.controls = false;
     let chaos = 0.2;
     let pixel = 0;
 
-    function resize() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-    }
+function resize(){
+  const maxW = window.innerWidth;
+  const maxH = window.innerHeight * 0.6;
+
+  canvas.width = maxW;
+  canvas.height = maxH;
+}
 
     window.addEventListener("resize", resize);
     resize();
