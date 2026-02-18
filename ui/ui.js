@@ -1,3 +1,4 @@
+console.log("UI FILE LOADED 777");
 export function initUI(engine){
 
   const chaos = document.getElementById("chaos");
