@@ -8,17 +8,29 @@ export class Engine {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");
 
+    // адаптация под устройство
+    this.isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
+
+    this.resize();
+    window.addEventListener("resize", ()=>this.resize());
+
     this.video = new VideoEngine(canvas);
     this.stack = new EffectStack();
     this.chaos = new Chaos();
     this.recorder = new Recorder(canvas);
-this.canvas.width = window.innerWidth;
-this.canvas.height = window.innerHeight*0.6;
-    
+
     this.params = {
       destruction: 0,
       pixel: 1
     };
+  }
+
+  resize(){
+    const w = window.innerWidth;
+    const h = window.innerHeight * (this.isMobile ? 0.55 : 0.7);
+
+    this.canvas.width = w;
+    this.canvas.height = h;
   }
 
   start(){
@@ -26,13 +38,13 @@ this.canvas.height = window.innerHeight*0.6;
   }
 
   loop(){
-    this.video.drawBase();
+    this.video.draw();
 
-    let frame = this.video.getFrame();
-
-    frame = this.stack.apply(frame, this.params, this.chaos);
-
-    this.ctx.putImageData(frame,0,0);
+    let frame = this.video.frame();
+    if(frame){
+      frame = this.stack.apply(frame, this.params, this.chaos);
+      this.ctx.putImageData(frame,0,0);
+    }
 
     this.chaos.update(this.params);
 
