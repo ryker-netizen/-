@@ -12,7 +12,9 @@ export class Engine {
     this.stack = new EffectStack();
     this.chaos = new Chaos();
     this.recorder = new Recorder(canvas);
-
+this.canvas.width = window.innerWidth;
+this.canvas.height = window.innerHeight*0.6;
+    
     this.params = {
       destruction: 0,
       pixel: 1
