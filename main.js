@@ -8,12 +8,15 @@ window.addEventListener("DOMContentLoaded", () => {
   const startBtn = document.getElementById("startBtn");
 
   startBtn.addEventListener("click", async () => {
-    alert("START CLICKED");
 
-document.body.addEventListener("click", ()=>{
-  if(engine.unmute) engine.unmute();
-},{once:true});
-    
+    engine = await initVideoEngine();
+    initUI(engine);
+
+    // разблокировка звука после тапа
+    document.body.addEventListener("click", ()=>{
+      if(engine.unmute) engine.unmute();
+    },{once:true});
+
   });
 
 });
