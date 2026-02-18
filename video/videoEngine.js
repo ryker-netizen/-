@@ -1,47 +1,75 @@
-export class VideoEngine{
-  constructor(canvas){
-    this.canvas = canvas;
-    this.ctx = canvas.getContext("2d");
+import { pixelate } from "./pixelate.js";
 
-    this.video = document.createElement("video");
-    this.video.playsInline = true;
-    this.video.muted = true;
-    this.video.loop = true;
+export async function initVideoEngine() {
 
-    this.ready = false;
+    const video = document.createElement("video");
+    video.playsInline = true;
+    video.muted = true;
+    video.loop = true;
 
-    this.video.onloadeddata = ()=>{
-      this.ready = true;
-      this.video.play().catch(()=>{});
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    document.body.appendChild(canvas);
+
+    let chaos = 0.2;
+    let pixel = 0;
+
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+
+    window.addEventListener("resize", resize);
+    resize();
+
+    function render() {
+        requestAnimationFrame(render);
+
+        if (!video.videoWidth) return;
+
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        if (pixel > 0) {
+            pixelate(ctx, canvas, pixel);
+        }
+
+        if (chaos > 0) {
+            glitch(ctx, canvas, chaos);
+        }
+    }
+
+    function glitch(ctx, canvas, power) {
+        const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const d = img.data;
+
+        for (let i = 0; i < d.length; i += 4) {
+            if (Math.random() < power * 0.03) {
+                d[i] = 255 - d[i];
+                d[i + 1] = 255 - d[i + 1];
+                d[i + 2] = 255 - d[i + 2];
+            }
+        }
+
+        ctx.putImageData(img, 0, 0);
+    }
+
+    render();
+
+    return {
+
+        loadVideo(file) {
+            video.src = URL.createObjectURL(file);
+            video.play();
+        },
+
+        setChaos(v) {
+            chaos = v;
+        },
+
+        setPixel(v) {
+            pixel = v * 40;
+        }
+
     };
-  }
-
-  load(file){
-    if(!file) return;
-
-    const url = URL.createObjectURL(file);
-    this.video.src = url;
-    this.video.load();
-  }
-
-  draw(){
-    if(!this.ready) return;
-
-    this.ctx.drawImage(
-      this.video,
-      0,0,
-      this.canvas.width,
-      this.canvas.height
-    );
-  }
-
-  frame(){
-    if(!this.ready) return null;
-
-    return this.ctx.getImageData(
-      0,0,
-      this.canvas.width,
-      this.canvas.height
-    );
-  }
 }
