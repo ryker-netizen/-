@@ -1,12 +1,11 @@
-import { Engine } from "./core/engine.js";
-import { UI } from "./ui/ui.js";
+import { initUI } from "./ui/ui.js";
+import { initVideoEngine } from "./video/videoEngine.js";
 
-const canvas = document.getElementById("screen");
+let engine = null;
 
-const engine = new Engine(canvas);
-const ui = new UI(engine);
+window.addEventListener("DOMContentLoaded", async () => {
 
-document.getElementById("start").onclick = ()=>{
-  engine.unlock();
-  engine.start();
-};
+    engine = await initVideoEngine();
+    initUI(engine);
+
+});
