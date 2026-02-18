@@ -4,7 +4,9 @@ export async function initVideoEngine() {
 
     const video = document.createElement("video");
     video.playsInline = true;
-    video.muted = true;
+    video.muted = false;
+video.volume = 1;
+video.controls = false;
     video.loop = true;
 
     const canvas = document.createElement("canvas");
