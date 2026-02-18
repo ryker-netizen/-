@@ -6,4 +6,7 @@ const canvas = document.getElementById("screen");
 const engine = new Engine(canvas);
 const ui = new UI(engine);
 
-engine.start();
+document.getElementById("start").onclick = ()=>{
+  engine.unlock();
+  engine.start();
+};
