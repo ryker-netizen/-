@@ -1,34 +1,37 @@
-console.log("UI FILE LOADED 777");
-export function initUI(engine){
+export async function initVideoEngine(){
 
-  const chaos = document.getElementById("chaos");
-  const pixel = document.getElementById("pixel");
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
 
-  chaos.oninput = e=>{
-    engine.params.destruction = parseFloat(e.target.value);
+  let video = null;
+  let playing = false;
+
+  function resize(){
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener("resize", resize);
+
+  function render(){
+    if(playing && video){
+      ctx.drawImage(video,0,0,canvas.width,canvas.height);
+    }
+    requestAnimationFrame(render);
+  }
+  render();
+
+  return {
+
+    async loadVideo(file){
+      video = document.createElement("video");
+      video.src = URL.createObjectURL(file);
+      video.muted = true;
+      video.playsInline = true;
+
+      await video.play();
+      playing = true;
+    }
+
   };
-
-  pixel.oninput = e=>{
-    engine.params.pixel = parseFloat(e.target.value);
-  };
-
-  // загрузка видео
-  document.getElementById("load").onclick = ()=>{
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "video/*";
-
-    input.onchange = e=>{
-      const file = e.target.files[0];
-      engine.video.load(file);
-    };
-
-    input.click();
-  };
-
-  // запись
-  document.getElementById("rec").onclick = ()=>{
-    engine.recorder.toggle();
-  };
-
 }
