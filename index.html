@@ -32,6 +32,19 @@ canvas{
   height:auto;
   background:#000;
 }
+  <br>
+
+<label>INSANITY</label>
+<input type="range" id="insanity" min="0" max="10" step="0.1">
+
+<label>distortion</label>
+<input type="range" id="distortion" min="0" max="100">
+
+<label>delay</label>
+<input type="range" id="delay" min="0" max="100">
+
+<label>bitcrush</label>
+<input type="range" id="bitcrush" min="0" max="100">
 
 button,input{margin:4px;}
 </style>
@@ -101,14 +114,33 @@ playBtn.onclick = ()=>{
   draw();
 
   // создаём аудио контекст при первом клике
-  if(!audioCtx){
-    audioCtx = new AudioContext();
-    const src = audioCtx.createMediaElementSource(video);
-    dest = audioCtx.createMediaStreamDestination();
-    src.connect(dest);
-    src.connect(audioCtx.destination);
-  }
-};
+if(!audioCtx){
+  audioCtx = new AudioContext();
+
+  const src = audioCtx.createMediaElementSource(video);
+
+  const gain = audioCtx.createGain();
+  const delayNode = audioCtx.createDelay(1.0);
+  const feedback = audioCtx.createGain();
+  const wave = audioCtx.createWaveShaper();
+
+  dest = audioCtx.createMediaStreamDestination();
+
+  src.connect(gain);
+  gain.connect(delayNode);
+  delayNode.connect(feedback);
+  feedback.connect(delayNode);
+  delayNode.connect(wave);
+  wave.connect(dest);
+  wave.connect(audioCtx.destination);
+
+  window.audioNodes = {
+    gain,
+    delayNode,
+    feedback,
+    wave
+  };
+}
 
 stopBtn.onclick = ()=>{
   video.pause();
@@ -125,6 +157,10 @@ destructionSlider.oninput = e=>{
 glitchSlider.oninput = e=>{
   glitch = e.target.value/100;
 };
+  let insanity = 0;
+let distortion = 0;
+let delayAmount = 0;
+let bitcrush = 0;
 
 function draw(){
   if(video.paused || video.ended) return;
@@ -203,6 +239,24 @@ recBtn.onclick = ()=>{
   }
 
 };
+document.getElementById("insanity").oninput = e=>{
+  insanity = parseFloat(e.target.value);
+};
+
+document.getElementById("distortion").oninput = e=>{
+  distortion = e.target.value/100;
+  updateAudio();
+};
+
+document.getElementById("delay").oninput = e=>{
+  delayAmount = e.target.value/100;
+  updateAudio();
+};
+
+document.getElementById("bitcrush").oninput = e=>{
+  bitcrush = e.target.value/100;
+};
+  
 </script>
 
 </body>
