@@ -1,96 +1,84 @@
-import { pixelate } from "./pixelate.js";
-
 export async function initVideoEngine() {
 
-    const video = document.createElement("video");
-    video.playsInline = true;
-    video.muted = false;
-video.volume = 1;
-video.controls = false;
-    video.loop = true;
+  const video = document.createElement("video");
+  video.playsInline = true;
+  video.muted = false;
+  video.loop = true;
 
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
 
-    document.body.appendChild(canvas);
+  document.body.appendChild(canvas);
 
-    let chaos = 0.2;
-    let pixel = 0;
+  let chaos = 0.3;
+  let pixel = 0;
 
-function resize(){
-  const maxW = window.innerWidth;
-  const maxH = window.innerHeight * 0.6;
+  function resize(){
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight * 0.6;
+  }
 
-  canvas.width = maxW;
-  canvas.height = maxH;
-}
+  window.addEventListener("resize", resize);
+  resize();
 
-    window.addEventListener("resize", resize);
-    resize();
+  function render(){
+    requestAnimationFrame(render);
 
-    function render(){
+    if(video.readyState < 2) return;
 
-  ctx.drawImage(video,0,0,canvas.width,canvas.height);
+    ctx.drawImage(video,0,0,canvas.width,canvas.height);
 
-  // ГЛИТЧ
-  const img = ctx.getImageData(0,0,canvas.width,canvas.height);
-  const data = img.data;
+    // ===== ГЛИТЧ =====
+    if(chaos > 0){
+      const img = ctx.getImageData(0,0,canvas.width,canvas.height);
+      const d = img.data;
 
-  for(let i=0;i<data.length;i+=40){
-    if(Math.random()<0.3){
-      data[i] = 255;
-      data[i+1] = 0;
-      data[i+2] = 0;
+      for(let i=0;i<d.length;i+=4){
+        if(Math.random() < chaos*0.02){
+          d[i] = 255-d[i];
+          d[i+1] = 255-d[i+1];
+          d[i+2] = 255-d[i+2];
+        }
+      }
+
+      ctx.putImageData(img,0,0);
+    }
+
+    // ===== PIXEL =====
+    if(pixel > 0){
+      const size = Math.floor(pixel);
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(canvas,0,0,
+        canvas.width/size,
+        canvas.height/size);
+      ctx.drawImage(canvas,0,0,
+        canvas.width/size,
+        canvas.height/size,
+        0,0,
+        canvas.width,
+        canvas.height);
     }
   }
 
-  ctx.putImageData(img,0,0);
+  render();
 
-  requestAnimationFrame(render);
+  return {
+    loadVideo(file){
+      video.src = URL.createObjectURL(file);
+      video.play();
+    },
+
+    setChaos(v){
+      chaos = v;
+    },
+
+    setPixel(v){
+      pixel = v*20;
+    },
+
+    unmute(){
+      video.muted = false;
+      video.play();
     }
-
-        if (chaos > 0) {
-            glitch(ctx, canvas, chaos);
-        }
-    }
-
-    function glitch(ctx, canvas, power) {
-        const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const d = img.data;
-
-        for (let i = 0; i < d.length; i += 4) {
-            if (Math.random() < power * 0.03) {
-                d[i] = 255 - d[i];
-                d[i + 1] = 255 - d[i + 1];
-                d[i + 2] = 255 - d[i + 2];
-            }
-        }
-
-        ctx.putImageData(img, 0, 0);
-    }
-
-    render();
-
-    return {
-
-        loadVideo(file) {
-            video.src = URL.createObjectURL(file);
-            video.play();
-        },
-
-        setChaos(v) {
-            chaos = v;
-        },
-
-        setPixel(v) {
-            pixel = v * 40;
-        }
-        unmute(){
-  if(video){
-    video.muted = false;
-    video.play();
-  }
-        }
-
-    };
+  };
 }
