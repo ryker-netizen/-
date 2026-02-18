@@ -6,6 +6,9 @@ export class VideoEngine{
     this.video = document.createElement("video");
     this.video.loop = true;
     this.video.muted = true;
+    this.video.playsInline = true;
+this.video.muted = true;
+this.video.autoplay = true;
   }
 
   load(file){
