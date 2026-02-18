@@ -8,11 +8,19 @@ window.addEventListener("DOMContentLoaded", () => {
   const startBtn = document.getElementById("startBtn");
 
   startBtn.addEventListener("click", async () => {
-    if (!engine) {
-      console.log("INIT ENGINE");
+    alert("START CLICKED");
+
+    try {
+      alert("INIT ENGINE...");
       engine = await initVideoEngine();
+      alert("ENGINE INIT OK");
+
       initUI(engine);
-      console.log("ENGINE READY");
+      alert("UI INIT OK");
+
+    } catch (e) {
+      alert("ERROR: " + e.message);
+      console.error(e);
     }
   });
 
