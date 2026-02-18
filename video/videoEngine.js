@@ -12,6 +12,7 @@ export class VideoEngine{
 
     this.video.onloadeddata = ()=>{
       this.ready = true;
+      this.video.play().catch(()=>{});
     };
   }
 
@@ -20,8 +21,7 @@ export class VideoEngine{
 
     const url = URL.createObjectURL(file);
     this.video.src = url;
-
-    this.video.play().catch(()=>{});
+    this.video.load();
   }
 
   draw(){
