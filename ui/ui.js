@@ -2,27 +2,33 @@ export class UI{
   constructor(engine){
     this.engine = engine;
 
-    document.getElementById("chaos").oninput = e=>{
+    const chaos = document.getElementById("chaos");
+    const pixel = document.getElementById("pixel");
+
+    chaos.oninput = e=>{
       engine.params.destruction = parseFloat(e.target.value);
     };
 
-    document.getElementById("pixel").oninput = e=>{
+    pixel.oninput = e=>{
       engine.params.pixel = parseFloat(e.target.value);
     };
 
-    document.getElementById("importVideo").onclick = ()=>{
+    // загрузка видео
+    document.getElementById("load").onclick = ()=>{
       const input = document.createElement("input");
-      input.type="file";
-      input.accept="video/*";
+      input.type = "file";
+      input.accept = "video/*";
 
       input.onchange = e=>{
-        engine.video.load(e.target.files[0]);
+        const file = e.target.files[0];
+        engine.video.load(file);
       };
 
       input.click();
     };
 
-    document.getElementById("record").onclick = ()=>{
+    // запись
+    document.getElementById("rec").onclick = ()=>{
       engine.recorder.toggle();
     };
   }
