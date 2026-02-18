@@ -187,6 +187,15 @@ function draw(){
         ctx.putImageData(row,shift,y);
       }
     }
+    // INSANITY
+if(insanity>0){
+  for(let i=0;i<data.length;i+=4){
+    if(Math.random()<insanity*0.02){
+      data[i] = Math.random()*255;
+      data[i+1] = Math.random()*255;
+      data[i+2] = Math.random()*255;
+    }
+  }
 
     ctx.putImageData(img,0,0);
   }
@@ -256,6 +265,29 @@ document.getElementById("delay").oninput = e=>{
 document.getElementById("bitcrush").oninput = e=>{
   bitcrush = e.target.value/100;
 };
+  function updateAudio(){
+  if(!window.audioNodes) return;
+
+  const {delayNode, feedback, wave} = window.audioNodes;
+
+  delayNode.delayTime.value = delayAmount * 0.4;
+  feedback.gain.value = delayAmount * 0.6;
+
+  // distortion curve
+  const k = distortion * 400;
+  const n = 44100;
+  const curve = new Float32Array(n);
+
+  for(let i=0;i<n;i++){
+    const x = i*2/n - 1;
+    curve[i] = (1+k)*x/(1+k*Math.abs(x));
+  }
+
+  wave.curve = curve;
+  }
+  if(insanity>0 && window.audioNodes){
+  window.audioNodes.feedback.gain.value += Math.random()*insanity*0.02;
+  }
   
 </script>
 
